@@ -1,3 +1,4 @@
+import BoardingPass from "./components/BoardingPass";
 import ChevronRibbons from "./components/ChevronRibbons";
 import Features from "./components/Features";
 import Hero from "./components/Hero";
@@ -16,8 +17,9 @@ export default function Home() {
       <HowWeHelp />
       <Features />
       <Testimonials />
-      <Offices />
       <ChevronRibbons />
+      <Offices />
+      <BoardingPass />
     </main>
   );
 }
