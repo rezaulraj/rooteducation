@@ -1,6 +1,8 @@
+import ChevronRibbons from "./components/ChevronRibbons";
 import Features from "./components/Features";
 import Hero from "./components/Hero";
 import HowWeHelp from "./components/HowWeHelp";
+import Offices from "./components/Offices";
 import Stats from "./components/Stats";
 import Testimonials from "./components/Testimonials";
 import WhyRoot from "./components/WhyRoot";
@@ -14,7 +16,8 @@ export default function Home() {
       <HowWeHelp />
       <Features />
       <Testimonials />
-      <section className="min-h-screen bg-white" />
+      <Offices />
+      <ChevronRibbons />
     </main>
   );
 }
