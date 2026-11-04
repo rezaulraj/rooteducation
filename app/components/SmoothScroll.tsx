@@ -43,11 +43,14 @@ export default function SmoothScroll() {
     const unlock = () => lenis.start();
     window.addEventListener("scroll:lock", lock);
     window.addEventListener("scroll:unlock", unlock);
+    const toTop = () => lenis.scrollTo(0, { duration: 2.4 });
+    window.addEventListener("scroll:top", toTop);
 
     return () => {
       document.removeEventListener("click", onClick);
       window.removeEventListener("scroll:lock", lock);
       window.removeEventListener("scroll:unlock", unlock);
+      window.removeEventListener("scroll:top", toTop);
       gsap.ticker.remove(raf);
       lenis.destroy();
     };
