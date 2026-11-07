@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import CountriesWeWork from "../../components/CountriesWeWork";
 import StudyAbroadCards from "../../components/StudyAbroadCards";
 import StudyAbroadHero from "../../components/StudyAbroadHero";
 
@@ -12,6 +13,7 @@ export default function StudyAbroadConsultationPage() {
     <main className="flex-1">
       <StudyAbroadHero />
       <StudyAbroadCards />
+      <CountriesWeWork />
     </main>
   );
 }
