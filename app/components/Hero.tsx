@@ -12,10 +12,44 @@ import DestinationReel from "./DestinationReel";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, MotionPathPlugin);
 
-const headingLines = [
-  [{ text: "Study" }, { text: "in" }, { text: "Europe." }],
-  [{ text: "Grow" }, { text: "from" }, { text: "strong" }, { text: "roots.", accent: true }],
-];
+type HeadingWord = { text: string; accent?: boolean; underline?: boolean };
+const headingLead: HeadingWord[] = [{ text: "Your" }, { text: "dream" }, { text: "university" }];
+// The two faces of the rolling line: the first is on show at rest, scrolling turns over to the second.
+const headingFront: HeadingWord[] = [{ text: "isn't" }, { text: "luck.", accent: true }];
+const headingBack: HeadingWord[] = [{ text: "It's" }, { text: "a" }, { text: "plan.", accent: true, underline: true }];
+
+/** A run of words, each masked and split into letters so they can move one by one. */
+function HeadingWords({ words, charProps, charClass = "" }: { words: HeadingWord[]; charProps: Record<string, boolean>; charClass?: string }) {
+  return words.map((word, wi) => (
+    <Fragment key={wi}>
+      {wi > 0 && " "}
+      <span className="relative inline-block">
+        <span className={`inline-block overflow-hidden pb-[0.12em] -mb-[0.12em] ${word.accent ? "text-brand" : ""}`}>
+          {word.text.split("").map((ch, ci) => (
+            <span key={ci} {...charProps} className={`inline-block will-change-transform ${charClass}`}>
+              {ch}
+            </span>
+          ))}
+        </span>
+        {word.underline && (
+          <svg viewBox="0 0 300 30" preserveAspectRatio="none" className="absolute -bottom-[0.14em] left-0 h-[0.22em] w-full overflow-visible" aria-hidden>
+            <path
+              data-underline
+              d="M4 20 C 70 6, 150 4, 296 14"
+              fill="none"
+              stroke="#141012"
+              strokeWidth="7"
+              strokeLinecap="round"
+              pathLength={1}
+              strokeDasharray="1"
+              strokeDashoffset="1"
+            />
+          </svg>
+        )}
+      </span>
+    </Fragment>
+  ));
+}
 
 // Back to front; depth drives parallax strength.
 const ridges = [
@@ -84,7 +118,6 @@ export default function Hero() {
           .from("[data-cloud]", { autoAlpha: 0, x: -60, duration: 1.6, stagger: 0.15 }, 0.3)
           .from("[data-eyebrow]", { y: 20, autoAlpha: 0, duration: 0.9 }, 0.5)
           .from("[data-char]", { yPercent: 115, rotate: 12, duration: 1.1, stagger: 0.022 }, 0.6)
-          .fromTo("[data-underline]", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1, ease: "power2.inOut" }, "-=0.5")
           .from("[data-fade]", { y: 24, autoAlpha: 0, duration: 1, stagger: 0.1 }, "-=0.7");
 
         // Ambient: drifting clouds and a breathing sun.
@@ -142,6 +175,20 @@ export default function Hero() {
           .fromTo("[data-institute-glow]", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 0.8)
           .fromTo("[data-institute-mist]", { x: 160 }, { x: -80, duration: 1.2 }, 0.25);
 
+        // The headline's second face: each letter of "isn't luck." rolls up and away around an axis
+        // behind the text, and "It's a plan." rolls up into place after it, then gets underlined.
+        const faceChars = gsap.utils.toArray<HTMLElement>("[data-face-front], [data-face-back]");
+        const setFaceOrigin = () => {
+          const size = parseFloat(getComputedStyle(root.current!.querySelector("h1")!).fontSize);
+          gsap.set(faceChars, { transformOrigin: `50% 50% ${-size * 0.45}px`, transformPerspective: size * 9 });
+        };
+        setFaceOrigin();
+        ScrollTrigger.addEventListener("refresh", setFaceOrigin);
+        scene
+          .to("[data-face-front]", { rotationX: 90, autoAlpha: 0, duration: 0.2, stagger: 0.016, ease: "power2.inOut" }, 0.06)
+          .fromTo("[data-face-back]", { rotationX: -90, autoAlpha: 0 }, { rotationX: 0, autoAlpha: 1, duration: 0.2, stagger: 0.016, ease: "power2.inOut" }, 0.1)
+          .fromTo("[data-underline]", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.2, ease: "power2.inOut" }, 0.42);
+
         // Steps: each label sits in the list slot it will end in, offset out to its scattered spot.
         // They reveal while the graduate rises, drift gently, then glide home and join up.
         const hero = root.current!.firstElementChild as HTMLElement;
@@ -184,7 +231,13 @@ export default function Hero() {
         return () => {
           window.removeEventListener("pointermove", onMove);
           gsap.ticker.remove(bob);
+          ScrollTrigger.removeEventListener("refresh", setFaceOrigin);
         };
+      });
+
+      // Reduced motion: both faces are stacked in the markup, so only the underline needs setting.
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        gsap.set("[data-underline]", { strokeDashoffset: 0 });
       });
     },
     { scope: root },
@@ -274,44 +327,21 @@ export default function Hero() {
           Admissions open for 2027 intakes
         </span>
 
-        <h1 className="mt-6 text-[clamp(2.5rem,6.6vw,5.6rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-ink">
-          {headingLines.map((line, li) => (
-            <span key={li} className="block">
-              {line.map((word, wi) => (
-                <Fragment key={wi}>
-                {wi > 0 && " "}
-                <span className="relative inline-block">
-                  <span className={`inline-block overflow-hidden pb-[0.12em] -mb-[0.12em] ${word.accent ? "text-brand" : ""}`}>
-                    {word.text.split("").map((ch, ci) => (
-                      <span key={ci} data-char className="inline-block will-change-transform">
-                        {ch}
-                      </span>
-                    ))}
-                  </span>
-                  {word.accent && (
-                    <svg
-                      viewBox="0 0 300 30"
-                      preserveAspectRatio="none"
-                      className="absolute -bottom-[0.14em] left-0 h-[0.22em] w-full overflow-visible"
-                      aria-hidden
-                    >
-                      <path
-                        data-underline
-                        d="M4 20 C 70 6, 150 4, 296 14"
-                        fill="none"
-                        stroke="#141012"
-                        strokeWidth="7"
-                        strokeLinecap="round"
-                        pathLength={1}
-                        strokeDasharray="1"
-                      />
-                    </svg>
-                  )}
-                </span>
-                </Fragment>
-              ))}
+        <h1
+          aria-label="Your dream university isn't luck. It's a plan."
+          className="mt-6 text-[clamp(2.5rem,6.6vw,5.6rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-ink"
+        >
+          <span className="block">
+            <HeadingWords words={headingLead} charProps={{ "data-char": true }} />
+          </span>
+          <span className="grid justify-items-center">
+            <span className="block motion-safe:col-start-1 motion-safe:row-start-1">
+              <HeadingWords words={headingFront} charProps={{ "data-char": true, "data-face-front": true }} />
             </span>
-          ))}
+            <span className="block motion-safe:col-start-1 motion-safe:row-start-1">
+              <HeadingWords words={headingBack} charProps={{ "data-face-back": true }} charClass="motion-safe:invisible" />
+            </span>
+          </span>
         </h1>
 
         <p data-fade className="mt-7 max-w-xl text-[1.05rem] leading-relaxed text-ink/70 sm:text-lg">
@@ -332,7 +362,7 @@ export default function Hero() {
             </span>
           </Link>
           <Link
-            href="/countries"
+            href="/study-abroad"
             className="inline-flex h-12 items-center rounded-2xl border border-white bg-white/85 px-5 text-sm font-semibold text-ink backdrop-blur-md transition-colors hover:bg-white/80"
           >
             Explore countries

@@ -53,44 +53,44 @@ export const countries = [
   {
     name: "Romania",
     tagline: "Study in Romania",
-    href: "/countries/romania",
+    href: "/study-abroad/romania",
     flag: "linear-gradient(90deg,#002B7F 33.33%,#FCD116 33.33% 66.66%,#CE1126 66.66%)",
   },
   {
     name: "Malta",
     tagline: "Study in Malta",
-    href: "/countries/malta",
+    href: "/study-abroad/malta",
     flag: "linear-gradient(90deg,#ffffff 50%,#CF142B 50%)",
   },
   {
     name: "Hungary",
     tagline: "Study in Hungary",
-    href: "/countries/hungary",
+    href: "/study-abroad/hungary",
     flag: "linear-gradient(180deg,#CE2939 33.33%,#ffffff 33.33% 66.66%,#477050 66.66%)",
   },
   {
     name: "Cyprus",
     tagline: "Study in Cyprus",
-    href: "/countries/cyprus",
+    href: "/study-abroad/cyprus",
     flag: "radial-gradient(ellipse 34% 22% at 50% 44%,#D57800 92%,transparent 100%),#ffffff",
   },
   {
     name: "UK",
     tagline: "Study in UK",
-    href: "/countries/uk",
+    href: "/study-abroad/uk",
     flag: "linear-gradient(transparent 40%,#C8102E 40% 60%,transparent 60%),linear-gradient(90deg,transparent 45%,#C8102E 45% 55%,transparent 55%),linear-gradient(transparent 30%,#fff 30% 70%,transparent 70%),linear-gradient(90deg,transparent 39%,#fff 39% 61%,transparent 61%),#012169",
   },
   {
     name: "Greece",
     tagline: "Study in Greece",
-    href: "/countries/greece",
+    href: "/study-abroad/greece",
     flag: "linear-gradient(90deg,transparent 16%,#fff 16% 24%,transparent 24%) 0 0/40% 55.5% no-repeat,linear-gradient(transparent 40%,#fff 40% 60%,transparent 60%) 0 0/40% 55.5% no-repeat,linear-gradient(#0D5EAF,#0D5EAF) 0 0/40% 55.5% no-repeat,repeating-linear-gradient(180deg,#0D5EAF 0 11.11%,#ffffff 11.11% 22.22%)",
   },
 ] as const;
 
 const leftLinks = [
   { label: "Services", menu: "services" as MenuKey },
-  { label: "Countries", menu: "countries" as MenuKey },
+  { label: "Study Abroad", menu: "countries" as MenuKey },
   { label: "How We Work", href: "/how-we-work" },
 ];
 
@@ -657,7 +657,7 @@ export default function Header() {
                     onClick={() => setMobileSection(open ? null : key)}
                     className="flex w-full items-center justify-between px-3 py-4 text-left text-2xl font-semibold tracking-tight text-ink"
                   >
-                    {key === "services" ? "Services" : "Countries"}
+                    {key === "services" ? "Services" : "Study Abroad"}
                     <span
                       className={`grid h-8 w-8 place-items-center rounded-full transition-colors ${
                         open ? "bg-brand text-white" : "bg-ink/5"
