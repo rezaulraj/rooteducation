@@ -259,7 +259,7 @@ export default function RomaniaHero() {
             </div>
           </div>
         </div>
-
+ 
         {/* The embroidered band, stitched in by a needle */}
         <div data-ro-band aria-hidden className="absolute inset-x-0 bottom-6 z-20 sm:bottom-8">
           <div data-ro-sew className="relative">

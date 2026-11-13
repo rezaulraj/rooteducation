@@ -6,6 +6,7 @@ import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import EmbroideryBand from "./EmbroideryBand";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -227,7 +228,7 @@ export default function MaltaHero() {
           MALTA · MALTA
         </p>
 
-        <div className="relative z-10 mx-auto grid h-full max-w-6xl content-center items-center gap-6 px-6 pb-24 pt-24 lg:grid-cols-[1fr_1fr] lg:gap-8 lg:pb-20">
+        <div className="relative z-10 mx-auto grid h-full max-w-6xl content-center items-center gap-6 px-6 pb-44 pt-24 lg:grid-cols-[1fr_1fr] lg:gap-8 lg:pb-40">
           {/* Story */}
           <div data-mt-intro className="text-center lg:text-left">
             <p data-mt-fade className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/5 py-1.5 pl-1.5 pr-4 text-[0.68rem] font-semibold uppercase tracking-[0.28em] backdrop-blur-md sm:text-xs">
@@ -306,6 +307,11 @@ export default function MaltaHero() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* A cross-stitched band, sewn in above the ticker */}
+        <div data-mt-strip className="pointer-events-none absolute inset-x-0 bottom-[60px] z-20 hidden sm:block">
+          <EmbroideryBand id="malta" colors={["#F6E7C8", "#E8475A", "#F6C453"]} motifs={["cross", "star", "rhombus"]} size={5} />
         </div>
 
         {/* Ticker of reasons */}

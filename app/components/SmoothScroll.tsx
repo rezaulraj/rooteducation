@@ -45,12 +45,19 @@ export default function SmoothScroll() {
     window.addEventListener("scroll:unlock", unlock);
     const toTop = () => lenis.scrollTo(0, { duration: 2.4 });
     window.addEventListener("scroll:top", toTop);
+    // Scroll to an element: window.dispatchEvent(new CustomEvent("scroll:to", { detail: "#id" })).
+    const toTarget = (e: Event) => {
+      const el = document.querySelector((e as CustomEvent<string>).detail);
+      if (el) lenis.scrollTo(el as HTMLElement, { offset: -16, duration: 1.4 });
+    };
+    window.addEventListener("scroll:to", toTarget);
 
     return () => {
       document.removeEventListener("click", onClick);
       window.removeEventListener("scroll:lock", lock);
       window.removeEventListener("scroll:unlock", unlock);
       window.removeEventListener("scroll:top", toTop);
+      window.removeEventListener("scroll:to", toTarget);
       gsap.ticker.remove(raf);
       lenis.destroy();
     };

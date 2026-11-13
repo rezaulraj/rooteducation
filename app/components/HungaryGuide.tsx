@@ -1,7 +1,7 @@
 import CountryGuide, { type GuideData } from "./CountryGuide";
 
 // Figures are indicative (2025–26 university, government and student-guide sources) and vary by institution and year.
-const hungary: GuideData = {
+export const hungary: GuideData = {
   country: "Hungary",
   accent: "#2E7D4F",
   accentDark: "#163E28",

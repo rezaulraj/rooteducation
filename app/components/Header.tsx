@@ -88,14 +88,62 @@ export const countries = [
   },
 ] as const;
 
+type Destination = { name: string; code: string; href: string };
+const dest = (name: string, code: string, slug = name.toLowerCase().replace(/ /g, "-")): Destination => ({
+  name,
+  code,
+  href: `/study-abroad/${slug}`,
+});
+
+/** Every destination in the Study Abroad menu. Flags are the MIT-licensed flag-icons set, in /public/flags. */
+export const destinations = {
+  popular: [
+    dest("Australia", "au"),
+    dest("New Zealand", "nz"),
+    dest("UK", "gb", "uk"),
+    dest("Canada", "ca"),
+    dest("USA", "us", "usa"),
+    dest("Malaysia", "my"),
+    dest("Ireland", "ie"),
+    dest("South Korea", "kr"),
+  ],
+  europe: [
+    dest("Sweden", "se"),
+    dest("Finland", "fi"),
+    dest("Cyprus", "cy"),
+    dest("Belgium", "be"),
+    dest("Spain", "es"),
+    dest("Hungary", "hu"),
+    dest("Greece", "gr"),
+    dest("Lithuania", "lt"),
+    dest("Romania", "ro"),
+    dest("Malta", "mt"),
+    dest("Italy", "it"),
+    dest("Norway", "no"),
+  ],
+};
+
+function Flag({ code, className = "" }: { code: string; className?: string }) {
+  return (
+    <Image
+      src={`/flags/${code}.svg`}
+      alt=""
+      width={28}
+      height={21}
+      unoptimized
+      className={`shrink-0 rounded-[4px] object-cover shadow-[0_0_0_1px_rgba(11,11,12,0.08)] ${className}`}
+    />
+  );
+}
+
 const leftLinks = [
   { label: "Services", menu: "services" as MenuKey },
   { label: "Study Abroad", menu: "countries" as MenuKey },
-  { label: "How We Work", href: "/how-we-work" },
+  { label: "Universities & Programmes", short: "Universities", href: "/universities" },
 ];
 
 const rightLinks = [
-  { label: "About Us", href: "/about" },
+  { label: "How We Work", href: "/how-we-work" },
   { label: "Contact Us", href: "/contact" },
 ];
 
@@ -377,7 +425,7 @@ export default function Header() {
   };
 
   const navLinkClass =
-    "relative z-10 inline-flex h-10 items-center gap-1.5 rounded-xl px-3.5 text-[0.9rem] font-medium text-ink/80 transition-colors hover:text-ink";
+    "relative z-10 inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-xl px-2 text-[0.84rem] xl:px-3.5 xl:text-[0.9rem] font-medium text-ink/80 transition-colors hover:text-ink";
 
   return (
     <header ref={headerRef} className="fixed inset-x-0 top-0 z-50 px-14 sm:px-16 lg:px-20">
@@ -446,7 +494,14 @@ export default function Header() {
                       }}
                       onFocus={(e) => moveHighlight(e.currentTarget)}
                     >
-                      {item.label}
+                      {"short" in item && item.short ? (
+                        <>
+                          <span className="xl:hidden">{item.short}</span>
+                          <span className="hidden xl:inline">{item.label}</span>
+                        </>
+                      ) : (
+                        item.label
+                      )}
                     </Link>
                   </li>
                 ),
@@ -585,49 +640,64 @@ export default function Header() {
             ref={(el) => {
               contentRefs.current.countries = el;
             }}
-            className="absolute left-0 top-0 flex w-[640px] gap-3 p-3"
+            className="absolute left-0 top-0 w-[760px] p-3"
           >
-            <div className="grid flex-1 grid-cols-2 gap-1">
-              {countries.map((c) => (
-                <Link
-                  key={c.name}
-                  href={c.href}
-                  data-menu-item
-                  onClick={() => setActiveMenu(null)}
-                  className="group flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-brand/[0.07]"
-                >
-                  <span
-                    className="h-7 w-10 shrink-0 rounded-md shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)] transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110"
-                    style={{ background: c.flag }}
-                    aria-hidden
-                  />
-                  <span>
-                    <span className="block text-[0.92rem] font-semibold text-ink">{c.name}</span>
-                    <span className="block text-[0.78rem] text-ink/55 transition-colors group-hover:text-brand">
-                      {c.tagline}
-                    </span>
-                  </span>
-                </Link>
-              ))}
+            <div className="flex gap-3">
+              {/* Popular destinations */}
+              <div className="w-[230px] shrink-0 rounded-2xl bg-ink/[0.025] p-2">
+                <p data-menu-item className="px-3 pb-2 pt-2 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-ink/45">
+                  Popular destinations
+                </p>
+                {destinations.popular.map((c) => (
+                  <Link
+                    key={c.name}
+                    href={c.href}
+                    data-menu-item
+                    onClick={() => setActiveMenu(null)}
+                    className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-white hover:shadow-[0_6px_20px_-10px_rgba(11,11,12,0.25)]"
+                  >
+                    <Flag code={c.code} className="h-[21px] w-7 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" />
+                    <span className="text-[0.92rem] text-ink/75 transition-colors group-hover:font-semibold group-hover:text-ink">{c.name}</span>
+                    <Arrow className="ml-auto h-3.5 w-3.5 -translate-x-1 text-brand opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+                  </Link>
+                ))}
+              </div>
+
+              {/* Popular European destinations */}
+              <div className="min-w-0 flex-1 py-1">
+                <p data-menu-item className="px-1 pb-3 pt-1 text-lg font-semibold tracking-tight text-ink">
+                  Popular European destinations
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {destinations.europe.map((c) => (
+                    <Link
+                      key={c.name}
+                      href={c.href}
+                      data-menu-item
+                      onClick={() => setActiveMenu(null)}
+                      className="group flex items-center gap-3 rounded-xl border border-ink/[0.07] bg-white px-3.5 py-2.5 shadow-[0_2px_8px_-4px_rgba(11,11,12,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-[0_12px_24px_-12px_rgba(244,122,42,0.45)]"
+                    >
+                      <Flag code={c.code} className="h-[18px] w-6 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" />
+                      <span className="text-[0.9rem] font-medium text-ink">{c.name}</span>
+                      <Arrow className="ml-auto h-3.5 w-3.5 -translate-x-1 text-brand opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
             </div>
-            <Link
-              href="/consultation"
-              data-menu-item
-              onClick={() => setActiveMenu(null)}
-              className="group relative flex w-[200px] flex-col justify-between overflow-hidden rounded-2xl bg-brand p-5 text-white"
-            >
-              <span className="absolute -right-8 -top-8 h-28 w-28 rounded-full border-[14px] border-white/15 transition-transform duration-700 group-hover:scale-150" />
-              <span className="relative text-xs font-semibold uppercase tracking-[0.18em] text-white/80">
-                6 destinations
+            <div data-menu-item className="mt-3 flex items-center justify-between rounded-2xl bg-ink px-5 py-4 text-white">
+              <span className="text-sm">
+                <span className="font-semibold">{destinations.popular.length + destinations.europe.length} destinations.</span>{" "}
+                <span className="text-white/60">Not sure which fits you best?</span>
               </span>
-              <span className="relative">
-                <span className="block text-lg font-semibold leading-tight">Which country fits you best?</span>
-                <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold">
-                  Ask an advisor
-                  <Arrow className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-                </span>
-              </span>
-            </Link>
+              <Link
+                href="/consultation"
+                onClick={() => setActiveMenu(null)}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
+              >
+                Ask an advisor <Arrow className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
         </div>
         <span
@@ -687,19 +757,28 @@ export default function Header() {
                                 {s.label}
                               </Link>
                             ))
-                          : countries.map((c) => (
-                              <Link
-                                key={c.name}
-                                href={c.href}
-                                onClick={() => setMobileOpen(false)}
-                                className="flex items-center gap-3 rounded-xl px-3 py-2.5 active:bg-brand/10"
-                              >
-                                <span className="h-6 w-9 rounded shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" style={{ background: c.flag }} />
-                                <span>
-                                  <span className="block text-[0.95rem] font-medium text-ink">{c.name}</span>
-                                  <span className="block text-xs text-ink/50">{c.tagline}</span>
-                                </span>
-                              </Link>
+                          : (
+                              [
+                                ["Popular destinations", destinations.popular],
+                                ["Popular European destinations", destinations.europe],
+                              ] as const
+                            ).map(([title, list]) => (
+                              <div key={title} className="sm:col-span-2">
+                                <p className="px-3 pb-1 pt-3 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-ink/45">{title}</p>
+                                <div className="grid grid-cols-2 gap-1">
+                                  {list.map((c) => (
+                                    <Link
+                                      key={c.name}
+                                      href={c.href}
+                                      onClick={() => setMobileOpen(false)}
+                                      className="flex items-center gap-2.5 rounded-xl px-2 py-2.5 text-[0.92rem] font-medium leading-tight text-ink/80 active:bg-brand/10"
+                                    >
+                                      <Flag code={c.code} className="h-[18px] w-6" />
+                                      {c.name}
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
                             ))}
                       </div>
                     </div>
@@ -707,7 +786,7 @@ export default function Header() {
                 </div>
               );
             })}
-            {[{ label: "How We Work", href: "/how-we-work" }, ...rightLinks].map((item) => (
+            {[{ label: "Universities & Programmes", href: "/universities" }, ...rightLinks].map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
