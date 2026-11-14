@@ -28,7 +28,9 @@ export default function SmoothScroll() {
 
     // In-page anchors glide instead of jumping.
     const onClick = (e: MouseEvent) => {
-      const link = (e.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
+      const link = (e.target as Element).closest<HTMLAnchorElement>(
+        'a[href^="#"]',
+      );
       const id = link?.getAttribute("href");
       if (!id || id === "#") return;
       const target = document.querySelector(id);
@@ -45,9 +47,12 @@ export default function SmoothScroll() {
     window.addEventListener("scroll:unlock", unlock);
     const toTop = () => lenis.scrollTo(0, { duration: 2.4 });
     window.addEventListener("scroll:top", toTop);
-    // Scroll to an element: window.dispatchEvent(new CustomEvent("scroll:to", { detail: "#id" })).
+    // Scroll to an element or a position: window.dispatchEvent(new CustomEvent("scroll:to", { detail: "#id" | 1200 })).
     const toTarget = (e: Event) => {
-      const el = document.querySelector((e as CustomEvent<string>).detail);
+      const detail = (e as CustomEvent<string | number>).detail;
+      if (typeof detail === "number")
+        return lenis.scrollTo(detail, { duration: 1.1 });
+      const el = document.querySelector(detail);
       if (el) lenis.scrollTo(el as HTMLElement, { offset: -16, duration: 1.4 });
     };
     window.addEventListener("scroll:to", toTarget);
