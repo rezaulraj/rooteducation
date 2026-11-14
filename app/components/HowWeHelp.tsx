@@ -1,66 +1,84 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Icon } from "./Header";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-const help = [
-  "Get one-on-one guidance",
-  "Get a personalised roadmap",
-  "Find the right universities with admit chances",
-  "Prepare for exams",
-  "Build your application",
-  "Plan your finances",
-  "Unlock scholarships",
-  "Get visa ready",
-];
+const MAROON = "#2E1212";
 
-// Floating status chips over the illustration, as [left %, top %].
-const chips: {
-  label: string;
-  icon: string;
-  pos: [number, number];
-  tint: string;
-}[] = [
-  { label: "1-on-1 guidance", icon: "compass", pos: [6, 18], tint: "#F47A2A" },
+// Each week: its colour, the step it covers, whether the label sits above or below, and the paler "ghost" chevrons trailing it.
+const WEEKS = [
   {
-    label: "Personalised roadmap",
-    icon: "plane",
-    pos: [58, 34],
-    tint: "#141012",
+    color: "#6464FF",
+    step: "Find the right universities",
+    above: true,
+    ghosts: [] as string[],
+  },
+  { color: "#FFB321", step: "Plan your finances", above: false, ghosts: [] },
+  {
+    color: "#FF8A52",
+    step: "Prepare for exams",
+    above: true,
+    ghosts: ["#C3D2FF"],
   },
   {
-    label: "Scholarship unlocked",
-    icon: "scholarship",
-    pos: [10, 66],
-    tint: "#7FB59C",
+    color: "#EC6825",
+    step: "Unlock scholarships",
+    above: false,
+    ghosts: ["#FFBE96", "#EC6825"],
   },
+  { color: "#4A1814", step: "Get visa ready", above: true, ghosts: [] },
 ];
+const GHOST = 0.3; // how far each ghost sticks out, as a share of a chevron's width
 
-const BARS = 36;
-const headline = ["We've got you covered", "from day one"];
+/** A chevron with softly rounded corners: flat on the left, pointed on the right (220 × 108 box). */
+const CHEVRON =
+  "M12 0H178Q186 0 191 6L216 47Q220 54 216 61L191 102Q186 108 178 108H12Q0 108 0 96V12Q0 0 12 0Z";
 
-function Bars({ side }: { side: "left" | "right" }) {
+function Chevron({
+  color,
+  className = "",
+  style,
+  children,
+}: {
+  color: string;
+  className?: string;
+  style?: React.CSSProperties;
+  children?: React.ReactNode;
+}) {
   return (
-    <div
-      aria-hidden
-      className={`pointer-events-none absolute inset-y-0 z-30 hidden w-1/2 flex-col group-[.pinned]/how:flex ${side === "left" ? "left-0" : "right-0"}`}
-    >
-      {Array.from({ length: BARS }, (_, i) => (
-        <div
-          key={i}
-          data-bar={side}
-          className="-mb-px flex-1"
-          style={{ background: i % 6 === 3 ? "#2A1A1C" : "#141012" }}
-        />
-      ))}
+    <div className={`relative ${className}`} style={style}>
+      <svg
+        viewBox="0 0 220 108"
+        preserveAspectRatio="none"
+        className="block h-full w-full"
+        aria-hidden
+      >
+        <path d={CHEVRON} fill={color} />
+      </svg>
+      {children}
     </div>
+  );
+}
+
+function Arrow() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M3 8h10M9 4l4 4-4 4" />
+    </svg>
   );
 }
 
@@ -69,204 +87,120 @@ export default function HowWeHelp() {
 
   useGSAP(
     () => {
-      const section = root.current!;
-
-      // Ambient motion that runs regardless of scroll: drifting colour, sliding dot grid,
-      // turning orbit rings and bobbing chips.
-      gsap.to("[data-blob='a']", {
-        x: 120,
-        y: -80,
-        duration: 14,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-      });
-      gsap.to("[data-blob='b']", {
-        x: -140,
-        y: 90,
-        duration: 18,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-      });
-      gsap.to("[data-dots]", {
-        backgroundPosition: "120px 120px",
-        duration: 20,
-        ease: "none",
-        repeat: -1,
-      });
-      gsap.to("[data-orbit]", {
-        rotation: 360,
-        duration: 60,
-        ease: "none",
-        repeat: -1,
-        transformOrigin: "50% 50%",
-      });
-      gsap.utils.toArray<HTMLElement>("[data-chip-float]").forEach((el, i) => {
-        gsap.to(el, {
-          y: i % 2 ? 10 : -10,
-          duration: 2.6 + i * 0.5,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-        });
-      });
-
       const mm = gsap.matchMedia();
-
-      // Desktop: pinned twisting-slat curtain that opens onto the image and the copy.
       mm.add(
-        "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
-        () => {
-          section.classList.add("pinned");
+        {
+          desktop: "(min-width: 768px)",
+          motion: "(prefers-reduced-motion: no-preference)",
+        },
+        (ctx) => {
+          const { desktop, motion } = ctx.conditions as {
+            desktop: boolean;
+            motion: boolean;
+          };
+          if (!motion) return;
 
-          const tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: section,
-              pin: true,
-              start: "top top",
-              end: "+=180%",
-              scrub: 0.5,
-            },
-          });
-
-          // Slats sweep outwards, twisting to 45° and back on the way, one after another.
-          tl.to(
-            "[data-bar='left']",
-            {
-              xPercent: -101,
-              duration: 1,
-              ease: "power1.inOut",
-              stagger: { amount: 0.8, from: "start" },
-            },
-            0,
-          )
-            .to(
-              "[data-bar='right']",
-              {
-                xPercent: 101,
-                duration: 1,
-                ease: "power1.inOut",
-                stagger: { amount: 0.8, from: "end" },
-              },
-              0,
-            )
-            .to(
-              "[data-bar]",
-              {
-                rotation: 45,
-                duration: 0.9,
-                ease: "power1.out",
-                stagger: { amount: 0.8 },
-              },
-              0,
-            )
-            .to(
-              "[data-bar]",
-              {
-                rotation: 0,
-                duration: 0.9,
-                ease: "power1.in",
-                stagger: { amount: 0.8 },
-              },
-              0.9,
-            )
-            .to(
-              "[data-curtain-word='left']",
-              { xPercent: -60, autoAlpha: 0, duration: 0.9, ease: "power1.in" },
-              0,
-            )
-            .to(
-              "[data-curtain-word='right']",
-              { xPercent: 60, autoAlpha: 0, duration: 0.9, ease: "power1.in" },
-              0,
-            )
-            // What the curtain uncovers settles into place.
+          gsap
+            .timeline({
+              scrollTrigger: { trigger: root.current, start: "top 75%" },
+            })
             .fromTo(
-              "[data-how-art]",
-              { scale: 1.18 },
-              { scale: 1, duration: 1.8, ease: "power2.out" },
-              0,
+              "[data-hw-eyebrow]",
+              { x: -24, autoAlpha: 0 },
+              { x: 0, autoAlpha: 1, duration: 0.8, ease: "power3.out" },
             )
             .fromTo(
-              "[data-chip]",
-              { scale: 0, rotation: -12 },
-              {
-                scale: 1,
-                rotation: 0,
-                duration: 0.5,
-                stagger: 0.15,
-                ease: "back.out(2)",
-              },
-              1,
+              "[data-hw-line]",
+              { yPercent: 115 },
+              { yPercent: 0, duration: 1.1, stagger: 0.1, ease: "expo.out" },
+              0.1,
             )
             .fromTo(
-              "[data-how-path]",
-              { strokeDashoffset: 1 },
-              { strokeDashoffset: 0, duration: 0.9, ease: "power1.inOut" },
-              0.9,
-            )
-            .fromTo(
-              "[data-how-kicker]",
-              { y: 20, autoAlpha: 0 },
-              { y: 0, autoAlpha: 1, duration: 0.4 },
-              0.8,
-            )
-            .fromTo(
-              "[data-how-line]",
-              { yPercent: 110 },
-              { yPercent: 0, duration: 0.5, stagger: 0.12, ease: "power3.out" },
-              0.9,
-            )
-            .fromTo(
-              "[data-how-copy]",
+              "[data-hw-side]",
               { y: 24, autoAlpha: 0 },
               {
                 y: 0,
                 autoAlpha: 1,
-                duration: 0.45,
+                duration: 0.9,
                 stagger: 0.1,
                 ease: "power3.out",
               },
-              1.15,
+              0.35,
+            );
+
+          // The chevrons race in from the left one after another, then their ghosts slide out and the labels settle.
+          const tl = gsap.timeline({
+            scrollTrigger: { trigger: "[data-hw-track]", start: "top 80%" },
+          });
+          tl.fromTo(
+            "[data-hw-chev]",
+            desktop
+              ? { xPercent: -60, autoAlpha: 0, scaleX: 0.6 }
+              : { x: -60, autoAlpha: 0 },
+            desktop
+              ? {
+                  xPercent: 0,
+                  autoAlpha: 1,
+                  scaleX: 1,
+                  duration: 0.9,
+                  stagger: 0.14,
+                  ease: "expo.out",
+                  transformOrigin: "0% 50%",
+                }
+              : {
+                  x: 0,
+                  autoAlpha: 1,
+                  duration: 0.8,
+                  stagger: 0.12,
+                  ease: "expo.out",
+                },
+          )
+            .fromTo(
+              "[data-hw-week]",
+              { autoAlpha: 0, x: -10 },
+              { autoAlpha: 1, x: 0, duration: 0.5, stagger: 0.14 },
+              0.3,
             )
             .fromTo(
-              "[data-how-item]",
-              { x: 30, autoAlpha: 0 },
+              "[data-hw-ghost]",
+              { xPercent: -100 * GHOST, autoAlpha: 0 },
               {
-                x: 0,
+                xPercent: 0,
                 autoAlpha: 1,
-                duration: 0.4,
-                stagger: 0.07,
+                duration: 0.8,
+                stagger: 0.12,
                 ease: "power3.out",
               },
-              1.3,
+              0.75,
             )
             .fromTo(
-              "[data-how-tick]",
-              { scale: 0 },
-              { scale: 1, duration: 0.3, stagger: 0.07, ease: "back.out(3)" },
-              1.4,
-            )
-            .to({}, { duration: 0.4 });
+              "[data-hw-label]",
+              {
+                y: (i: number, el: HTMLElement) =>
+                  el.dataset.above ? 16 : -16,
+                autoAlpha: 0,
+              },
+              {
+                y: 0,
+                autoAlpha: 1,
+                duration: 0.7,
+                stagger: 0.12,
+                ease: "power3.out",
+              },
+              0.55,
+            );
 
-          return () => section.classList.remove("pinned");
-        },
-      );
-
-      // Smaller screens: a simple rise-in as the section arrives.
-      mm.add(
-        "(max-width: 1023px) and (prefers-reduced-motion: no-preference)",
-        () => {
-          gsap.from(
-            "[data-how-kicker], [data-how-line], [data-how-copy], [data-how-item]",
+          // A soft light keeps sweeping across the row.
+          gsap.fromTo(
+            "[data-hw-sheen]",
+            { xPercent: -120 },
             {
-              y: 30,
-              autoAlpha: 0,
-              duration: 0.7,
-              stagger: 0.06,
-              ease: "power3.out",
-              scrollTrigger: { trigger: section, start: "top 75%" },
+              xPercent: 520,
+              duration: 3.6,
+              ease: "power2.inOut",
+              repeat: -1,
+              repeatDelay: 1.6,
+              delay: 1.8,
             },
           );
         },
@@ -279,212 +213,145 @@ export default function HowWeHelp() {
     <section
       ref={root}
       aria-labelledby="how-title"
-      className="group/how relative overflow-hidden bg-white px-3 py-3 [&.pinned]:h-svh"
+      className="overflow-hidden bg-white px-6 py-24 sm:py-32"
     >
-      <div className="relative grid gap-3 lg:h-full lg:grid-cols-2">
-        {/* Illustration */}
-        <div className="relative h-[460px] overflow-hidden rounded-[28px] bg-[radial-gradient(120%_90%_at_30%_20%,#FFE3CC_0%,#FFC79E_45%,#F59A5C_100%)] lg:h-auto">
-          <div data-how-art className="absolute inset-0">
-            <div
-              aria-hidden
-              className="absolute left-1/2 top-[44%] h-[120%] -translate-x-1/2 -translate-y-1/2 opacity-70"
+      <div className="mx-auto max-w-6xl">
+        {/* Heading */}
+        <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p
+              data-hw-eyebrow
+              className="inline-flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.04em] text-[#6464FF] sm:text-base"
             >
-              <svg data-orbit viewBox="0 0 600 600" className="h-full w-auto">
-                <circle
-                  cx="300"
-                  cy="300"
-                  r="180"
-                  fill="none"
-                  stroke="#fff"
-                  strokeOpacity="0.55"
-                  strokeDasharray="3 10"
+              <svg
+                viewBox="0 0 26 18"
+                className="h-[18px] w-[26px]"
+                aria-hidden
+              >
+                <path
+                  d="M3 0H18Q20 0 21.3 1.6L25.4 7.6Q26.4 9 25.4 10.4L21.3 16.4Q20 18 18 18H3Q0 18 0 15V3Q0 0 3 0Z"
+                  fill="#6464FF"
                 />
-                <circle
-                  cx="300"
-                  cy="300"
-                  r="250"
-                  fill="none"
-                  stroke="#fff"
-                  strokeOpacity="0.35"
-                />
-                <circle cx="300" cy="50" r="7" fill="#fff" />
-                <circle cx="480" cy="300" r="5" fill="#141012" />
-                <circle cx="120" cy="300" r="5" fill="#F47A2A" />
               </svg>
-            </div>
-            <div
-              aria-hidden
-              className="absolute left-1/2 top-[18%] h-[62%] w-[62%] -translate-x-1/2 rounded-full bg-white/35 blur-3xl"
-            />
-            <svg
-              aria-hidden
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              className="absolute inset-0 h-full w-full"
+              How we help you
+            </p>
+            <h2
+              id="how-title"
+              className="mt-5 text-[clamp(2.6rem,6vw,4.6rem)] font-semibold leading-[1] tracking-[-0.045em]"
+              style={{ color: MAROON }}
             >
-              <path
-                data-how-path
-                d="M12 78 C 30 60, 18 40, 40 30 S 70 30, 78 14"
-                fill="none"
-                stroke="#141012"
-                strokeOpacity="0.35"
-                strokeWidth="0.5"
-                strokeDasharray="1.5 1.5"
-                pathLength={1}
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-            <Image
-              src="/centerstudent.png"
-              alt="Graduate pointing at his diploma"
-              width={1368}
-              height={1150}
-              sizes="(min-width: 1024px) 45vw, 95vw"
-              className="absolute bottom-0 left-1/2 h-[82%] w-auto max-w-none -translate-x-1/2 drop-shadow-[0_30px_40px_rgba(20,16,18,0.35)]"
-            />
-          </div>
-          {chips.map((c) => (
-            <div
-              key={c.label}
-              className="absolute"
-              style={{ left: `${c.pos[0]}%`, top: `${c.pos[1]}%` }}
-            >
-              <div data-chip>
-                <div
-                  data-chip-float
-                  className="flex items-center gap-3 rounded-2xl border border-white/70 bg-white/80 py-2.5 pl-2.5 pr-4 text-sm font-semibold text-ink shadow-[0_18px_40px_-18px_rgba(20,16,18,0.55)] backdrop-blur-md"
-                >
-                  <span
-                    className="grid h-9 w-9 place-items-center rounded-xl text-white"
-                    style={{ background: c.tint }}
-                  >
-                    <Icon name={c.icon} className="h-[18px] w-[18px]" />
-                  </span>
-                  {c.label}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Copy, over a slowly moving background */}
-        <div className="relative isolate overflow-hidden rounded-[28px] bg-[#FBF7F2] px-7 py-14 sm:px-12 lg:flex lg:flex-col lg:justify-center lg:px-16">
-          <div aria-hidden className="absolute inset-0 -z-10">
-            <div
-              data-blob="a"
-              className="absolute -left-20 -top-24 h-96 w-96 rounded-full bg-[#FFC79E]/70 blur-[90px]"
-            />
-            <div
-              data-blob="b"
-              className="absolute -bottom-28 -right-16 h-[28rem] w-[28rem] rounded-full bg-brand/25 blur-[100px]"
-            />
-            <div
-              data-dots
-              className="absolute inset-0 opacity-[0.35]"
-              style={{
-                backgroundImage:
-                  "radial-gradient(rgba(20,16,18,0.18) 1px, transparent 1px)",
-                backgroundSize: "24px 24px",
-              }}
-            />
-          </div>
-
-          <p
-            data-how-kicker
-            className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-brand"
-          >
-            <span className="h-px w-10 bg-brand" />
-            How we help you
-          </p>
-          <h2
-            id="how-title"
-            className="mt-5 text-[clamp(2.4rem,4.4vw,4.2rem)] font-semibold leading-[1] tracking-[-0.04em] text-ink"
-          >
-            {headline.map((line) => (
-              <span key={line} className="block overflow-hidden pb-[0.08em]">
-                <span data-how-line className="block">
-                  {line}
+              <span className="block overflow-hidden pb-[0.06em]">
+                <span data-hw-line className="block">
+                  We got you covered
                 </span>
               </span>
-            ))}
-          </h2>
-          <p
-            data-how-copy
-            className="mt-6 max-w-md text-lg leading-relaxed text-ink/65"
-          >
-            Every student starts with a dream. Root Education makes it reality.
-          </p>
-          <div data-how-copy className="mt-8">
-            <Link
-              href="/consultation"
-              className="group inline-flex h-12 items-center gap-3 rounded-full bg-ink pl-6 pr-2 text-sm font-semibold text-white"
+              <span className="block overflow-hidden pb-[0.1em]">
+                <span data-hw-line className="block">
+                  from Day one
+                </span>
+              </span>
+            </h2>
+          </div>
+          <div className="max-w-sm lg:pt-2">
+            <p
+              data-hw-side
+              className="text-lg leading-relaxed"
+              style={{ color: MAROON }}
             >
-              Start your journey
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-brand transition-transform duration-300 group-hover:rotate-[-45deg]">
-                <svg
-                  viewBox="0 0 16 16"
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 8h10M9 4l4 4-4 4" />
-                </svg>
+              Every student starts with a dream, but not everyone knows how to
+              take it global. Root Education opens that door.
+            </p>
+            <Link
+              data-hw-side
+              href="/consultation"
+              className="group mt-6 inline-flex h-14 items-center gap-3 rounded-full bg-[#0B0B0C] pl-7 pr-2 text-base font-semibold text-white transition-transform duration-300 hover:-translate-y-0.5"
+            >
+              Start Your Journey
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-brand transition-transform duration-300 group-hover:rotate-[-45deg]">
+                <Arrow />
               </span>
             </Link>
           </div>
-
-          <ul className="mt-10 grid gap-x-8 gap-y-3.5 sm:grid-cols-2">
-            {help.map((item) => (
-              <li
-                key={item}
-                data-how-item
-                className="flex items-start gap-3 text-[0.95rem] font-medium leading-snug text-ink/85"
-              >
-                <span
-                  data-how-tick
-                  className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand text-white"
-                >
-                  <svg
-                    viewBox="0 0 12 12"
-                    className="h-3 w-3"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M2.5 6.2 5 8.5l4.5-5" />
-                  </svg>
-                </span>
-                {item}
-              </li>
-            ))}
-          </ul>
         </div>
-      </div>
 
-      {/* The curtain: twisting slats with the title split across them */}
-      <Bars side="left" />
-      <Bars side="right" />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-40 hidden items-center group-[.pinned]/how:flex"
-      >
-        <span
-          data-curtain-word="left"
-          className="w-1/2 text-center text-[clamp(3rem,7vw,7rem)] font-black uppercase leading-[0.9] tracking-tight text-white"
+        {/* The five weeks: a row of chevrons on desktop, a stack on phones */}
+        <ol
+          data-hw-track
+          aria-label="Your journey, week by week"
+          className="relative mt-20 flex flex-col gap-4 md:mt-28 md:flex-row md:gap-1.5 md:pb-16 md:pt-16"
         >
-          How we
-        </span>
-        <span
-          data-curtain-word="right"
-          className="w-1/2 text-center text-[clamp(3rem,7vw,7rem)] font-black uppercase leading-[0.9] tracking-tight text-white"
-        >
-          <span className="text-brand">Help</span> you
-        </span>
+          {WEEKS.map((w, i) => {
+            const grow = 1 + GHOST * w.ghosts.length;
+            return (
+              <li
+                key={w.step}
+                className="relative md:min-w-0"
+                style={{ flex: `${grow} 1 0%` }}
+              >
+                {/* Label: above or below on desktop, beside on phones */}
+                <p
+                  data-hw-label
+                  data-above={w.above ? "1" : undefined}
+                  className={`mb-2 text-sm font-medium uppercase tracking-[0.02em] md:absolute md:left-0 md:mb-0 md:whitespace-nowrap md:text-[1.02rem] ${w.above ? "md:-top-12" : "md:-bottom-12"} ${i === WEEKS.length - 1 ? "md:left-auto md:right-0" : ""}`}
+                  style={{ color: MAROON }}
+                >
+                  {w.step}
+                </p>
+
+                <div
+                  data-hw-chev
+                  className="group relative h-20 md:h-[6.75rem]"
+                >
+                  {/* Ghost chevrons, tucked behind and peeking out to the right */}
+                  {w.ghosts
+                    .map((g, k) => ({ g, k }))
+                    .reverse()
+                    .map(({ g, k }) => (
+                      <div
+                        key={k}
+                        className="absolute inset-y-0 transition-transform duration-500 ease-out group-hover:translate-x-1.5"
+                        style={{
+                          left: `${((k + 1) * GHOST * 100) / grow}%`,
+                          width: `${100 / grow}%`,
+                        }}
+                      >
+                        <div data-hw-ghost className="h-full">
+                          <Chevron color={g} className="h-full" />
+                        </div>
+                      </div>
+                    ))}
+
+                  {/* The week itself */}
+                  <Chevron
+                    color={w.color}
+                    style={{ width: `${100 / grow}%` }}
+                    className="relative z-10 h-full overflow-hidden transition-transform duration-500 ease-out group-hover:-translate-y-1"
+                  >
+                    <span className="absolute inset-0 grid place-items-center pr-[8%]">
+                      <span
+                        data-hw-week
+                        className="text-base font-medium uppercase tracking-[0.04em] text-white sm:text-lg"
+                      >
+                        Week {i + 1}
+                      </span>
+                    </span>
+                  </Chevron>
+                </div>
+              </li>
+            );
+          })}
+
+          {/* A soft light that sweeps across the row */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-16 left-0 z-20 hidden w-1/5 md:block"
+          >
+            <span
+              data-hw-sheen
+              className="block h-full w-full -skew-x-12 bg-gradient-to-r from-transparent via-white/35 to-transparent"
+            />
+          </span>
+        </ol>
       </div>
     </section>
   );

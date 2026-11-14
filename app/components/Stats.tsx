@@ -1,83 +1,85 @@
 "use client";
 
 import { useRef, type PointerEvent, type ReactNode } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { OFFICES, WORLD_DOTS } from "./worldDots";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-const RINGS = 13;
-const TILES = 36;
-// Tiles fill in a scattered order so the grid "grows" rather than wipes.
-const tileOrder = Array.from({ length: TILES }, (_, i) => (i * 17 + 5) % TILES);
-const avatars = [
-  { initials: "AR", bg: "#F47A2A" },
-  { initials: "SN", bg: "#FFC79E" },
-  { initials: "MK", bg: "#7FB59C" },
-  { initials: "LT", bg: "#F6E2CF" },
-  { initials: "JD", bg: "#E09A66" },
-];
+const LEAD =
+  "Every student starts with a dream, but not everyone knows how to take it global.";
+const CLOSE = ["Root", "Education", "opens", "that", "door."];
+const UNDERLINE = new Set(["Education", "opens"]);
 
-/** A number whose digits roll into place like an odometer. */
-function Roll({ value }: { value: string }) {
-  return (
-    <span className="inline-flex tabular-nums" aria-label={value}>
-      {value.split("").map((ch, i) => {
-        const d = Number(ch);
-        if (Number.isNaN(d)) {
-          return (
-            <span key={i} aria-hidden>
-              {ch}
-            </span>
-          );
-        }
-        // Two runs of 0–9; land in the second so every digit spins at least once.
-        const land = ((10 + d) / 20) * 100;
-        return (
-          <span key={i} aria-hidden className="inline-block h-[1em] overflow-hidden leading-none">
-            <span data-roll data-land={land} className="flex flex-col" style={{ transform: `translateY(-${land}%)` }}>
-              {Array.from({ length: 20 }, (_, n) => (
-                <span key={n} className="block h-[1em]">
-                  {n % 10}
-                </span>
-              ))}
-            </span>
-          </span>
-        );
-      })}
-    </span>
-  );
-}
-
-function Card({ className = "", children }: { className?: string; children: ReactNode }) {
-  // A soft spotlight follows the pointer across the card.
+function Card({
+  className,
+  style,
+  children,
+}: {
+  className?: string;
+  style?: React.CSSProperties;
+  children: ReactNode;
+}) {
+  // Tilts towards the pointer, with a soft light following it.
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
-    e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
-    e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    e.currentTarget.style.setProperty("--mx", `${x * 100}%`);
+    e.currentTarget.style.setProperty("--my", `${y * 100}%`);
+    e.currentTarget.style.setProperty("--rx", `${(y - 0.5) * -8}deg`);
+    e.currentTarget.style.setProperty("--ry", `${(x - 0.5) * 8}deg`);
+  };
+  const onLeave = (e: PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.style.setProperty("--rx", "0deg");
+    e.currentTarget.style.setProperty("--ry", "0deg");
   };
   return (
-    <div
-      data-card
-      onPointerMove={onMove}
-      className={`group relative isolate overflow-hidden rounded-[28px] p-7 sm:p-9 ${className}`}
-    >
+    // The outer element is what GSAP animates in; the inner one keeps its own tilt.
+    <li data-stat className="[perspective:1000px]">
       <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        style={{ background: "radial-gradient(420px circle at var(--mx) var(--my), rgba(255,255,255,0.16), transparent 60%)" }}
-      />
-      {children}
-    </div>
+        onPointerMove={onMove}
+        onPointerLeave={onLeave}
+        className={`group relative isolate h-[23rem] overflow-hidden rounded-[22px] p-6 text-white transition-[transform,box-shadow] duration-500 ease-out [transform:rotateX(var(--rx,0deg))_rotateY(var(--ry,0deg))] hover:shadow-[0_40px_70px_-35px_rgba(11,11,12,0.55)] sm:h-[22rem] ${className}`}
+        style={style}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{
+            background:
+              "radial-gradient(320px circle at var(--mx) var(--my), rgba(255,255,255,0.22), transparent 60%)",
+          }}
+        />
+        {children}
+      </div>
+    </li>
   );
 }
 
-function Label({ children, tone = "light" }: { children: ReactNode; tone?: "light" | "dark" }) {
+function Figure({
+  value,
+  suffix,
+  label,
+}: {
+  value: number;
+  suffix: string;
+  label: string;
+}) {
   return (
-    <p className={`mt-3 text-sm font-medium uppercase tracking-[0.18em] ${tone === "light" ? "text-white/65" : "text-ink/55"}`}>
-      {children}
-    </p>
+    <div className="relative z-10">
+      <p className="text-[clamp(2.6rem,4.4vw,3.4rem)] font-semibold leading-none tracking-[-0.03em]">
+        <span data-count={value}>{value.toLocaleString("en-GB")}</span>
+        {suffix}
+      </p>
+      <p className="mt-2 text-lg font-medium leading-snug text-white/90">
+        {label}
+      </p>
+    </div>
   );
 }
 
@@ -88,188 +90,439 @@ export default function Stats() {
     () => {
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const tl = gsap.timeline({
-          defaults: { ease: "power3.out" },
-          scrollTrigger: { trigger: root.current, start: "top 70%", toggleActions: "play none none reverse" },
-        });
-
-        tl.from("[data-stats-head] > *", { y: 40, autoAlpha: 0, duration: 0.9, stagger: 0.1 })
+        // The sentence rises word by word, then the hand-drawn underline is sketched in.
+        gsap
+          .timeline({
+            scrollTrigger: { trigger: "[data-impact-head]", start: "top 80%" },
+          })
           .fromTo(
-            "[data-card]",
-            { clipPath: "inset(100% 0% 0% 0% round 28px)", y: 60 },
-            { clipPath: "inset(0% 0% 0% 0% round 28px)", y: 0, duration: 1.1, stagger: 0.12, ease: "expo.out" },
-            0.2,
-          )
-          .fromTo(
-            "[data-roll]",
-            { y: 0, yPercent: 0 },
+            "[data-w]",
+            { y: 24, opacity: 0, filter: "blur(6px)" },
             {
               y: 0,
-              yPercent: (_: number, el: HTMLElement) => -Number(el.dataset.land),
-              duration: 2,
-              stagger: 0.06,
-              ease: "power4.out",
+              opacity: 1,
+              filter: "blur(0px)",
+              duration: 0.9,
+              stagger: 0.035,
+              ease: "expo.out",
             },
-            0.45,
           )
-          .fromTo("[data-ring]", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.9, stagger: 0.07, ease: "power2.out" }, 0.6)
-          .fromTo("[data-tile]", { scale: 0 }, { scale: 1, duration: 0.5, stagger: { each: 0.025 }, ease: "back.out(2.5)" }, 0.6)
-          .fromTo("[data-avatar]", { scale: 0, x: -20 }, { scale: 1, x: 0, duration: 0.6, stagger: 0.08, ease: "back.out(2)" }, 0.7)
-          .fromTo("[data-pin]", { scale: 0 }, { scale: 1, duration: 0.5, stagger: 0.1, ease: "back.out(3)", transformOrigin: "50% 50%" }, 0.8);
+          .fromTo(
+            "[data-squiggle]",
+            { strokeDashoffset: 1 },
+            { strokeDashoffset: 0, duration: 1.1, ease: "power2.inOut" },
+            "-=0.4",
+          );
 
-        // The globe keeps turning slowly once it's on screen.
-        gsap.to("[data-orbit]", { rotation: 360, duration: 40, ease: "none", repeat: -1, transformOrigin: "50% 50%" });
-        gsap.to("[data-pin-pulse]", { scale: 2.4, opacity: 0, duration: 1.8, ease: "power1.out", repeat: -1, stagger: 0.3, transformOrigin: "50% 50%" });
+        // Cards rise and unfold one after another, each with its own illustration.
+        const cards = gsap.timeline({
+          defaults: { ease: "expo.out" },
+          scrollTrigger: { trigger: "[data-stats-grid]", start: "top 78%" },
+        });
+        cards
+          .fromTo(
+            "[data-stat]",
+            { y: 90, rotateX: -18, autoAlpha: 0 },
+            {
+              y: 0,
+              rotateX: 0,
+              autoAlpha: 1,
+              duration: 1.2,
+              stagger: 0.12,
+              transformOrigin: "50% 100%",
+            },
+          )
+          .fromTo(
+            "[data-student]",
+            { yPercent: 60 },
+            { yPercent: 0, duration: 1.3 },
+            0.35,
+          )
+          .fromTo(
+            "[data-bar]",
+            { scaleY: 0 },
+            {
+              scaleY: 1,
+              duration: 0.9,
+              stagger: 0.05,
+              ease: "back.out(1.6)",
+              transformOrigin: "50% 100%",
+            },
+            0.5,
+          )
+          .fromTo(
+            "[data-dots] circle",
+            { opacity: 0, scale: 0, transformOrigin: "50% 50%" },
+            {
+              opacity: 1,
+              scale: 1,
+              duration: 0.6,
+              ease: "back.out(2)",
+              stagger: { each: 0.0012, from: "center", grid: "auto" },
+            },
+            0.55,
+          )
+          .fromTo(
+            "[data-route]",
+            { strokeDashoffset: 0, opacity: 0 },
+            { opacity: 0.9, duration: 0.6 },
+            1.5,
+          )
+          .fromTo(
+            "[data-pin]",
+            { autoAlpha: 0 },
+            { autoAlpha: 1, duration: 0.5, stagger: 0.25 },
+            1.1,
+          )
+          .fromTo(
+            "[data-pin-dot]",
+            { attr: { r: 0 } },
+            {
+              attr: { r: 1.1 },
+              duration: 0.7,
+              stagger: 0.25,
+              ease: "back.out(3)",
+            },
+            1.1,
+          )
+          .fromTo(
+            "[data-cap]",
+            { y: -160, rotation: -40, autoAlpha: 0 },
+            {
+              y: 0,
+              rotation: 0,
+              autoAlpha: 1,
+              duration: 1.2,
+              ease: "back.out(1.4)",
+            },
+            0.7,
+          )
+          .fromTo(
+            "[data-cta]",
+            { y: 30, autoAlpha: 0 },
+            { y: 0, autoAlpha: 1, duration: 0.9, ease: "power3.out" },
+            0.9,
+          );
+
+        // Numbers count up as the cards arrive.
+        gsap.utils.toArray<HTMLElement>("[data-count]").forEach((el, i) => {
+          const end = Number(el.dataset.count);
+          const v = { n: 0 };
+          cards.to(
+            v,
+            {
+              n: end,
+              duration: 1.8,
+              ease: "power2.out",
+              onUpdate: () =>
+                (el.textContent = Math.round(v.n).toLocaleString("en-GB")),
+            },
+            0.3 + i * 0.12,
+          );
+        });
+
+        // Gentle life once they're in view.
+        gsap.to("[data-cap-float]", {
+          y: -8,
+          rotation: -3,
+          duration: 2.6,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+        });
+        gsap.fromTo(
+          "[data-spark]",
+          { strokeDashoffset: 1 },
+          {
+            strokeDashoffset: 0,
+            duration: 2.4,
+            ease: "power1.inOut",
+            repeat: -1,
+            repeatDelay: 0.4,
+            delay: 2,
+          },
+        );
+        gsap.to("[data-route]", {
+          strokeDashoffset: -2.2,
+          duration: 1.6,
+          ease: "none",
+          repeat: -1,
+        });
+        gsap.fromTo(
+          "[data-pin-pulse]",
+          { attr: { r: 1.2 }, opacity: 0.9 },
+          {
+            attr: { r: 4.5 },
+            opacity: 0,
+            duration: 1.8,
+            ease: "power1.out",
+            repeat: -1,
+            stagger: 0.4,
+          },
+        );
       });
     },
     { scope: root },
   );
 
   return (
-    <section ref={root} aria-labelledby="stats-title" className="bg-white px-3 py-24 sm:py-32">
-      <div className="mx-auto max-w-6xl px-3">
-        <div data-stats-head className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <div>
-            <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-brand">
-              <span className="h-px w-10 bg-brand" />
-              Our impact
-            </p>
-            <h2 id="stats-title" className="mt-5 text-[clamp(2.4rem,5.4vw,4.6rem)] font-semibold leading-[0.95] tracking-[-0.04em] text-ink">
-              Rooted in <span className="text-brand">results.</span>
-            </h2>
-          </div>
-          <p className="max-w-sm text-base leading-relaxed text-ink/60">
-            Thirteen years of turning study-abroad plans into offer letters, visas and first days on campus.
+    <section
+      ref={root}
+      aria-labelledby="impact-title"
+      className="overflow-hidden bg-white px-6 py-24 sm:py-32"
+    >
+      <div className="mx-auto max-w-6xl">
+        {/* Heading */}
+        <div data-impact-head className="mx-auto max-w-4xl text-center">
+          <p className="inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-brand">
+            <span className="h-px w-8 bg-brand" />
+            Our impact
+            <span className="h-px w-8 bg-brand" />
           </p>
+          <h2
+            id="impact-title"
+            className="mt-6 text-[clamp(1.6rem,3.2vw,2.6rem)] font-semibold leading-[1.25] tracking-[-0.02em] text-[#2E1212]"
+          >
+            {[...LEAD.split(" "), ...CLOSE].map((w, i) => (
+              <span key={i} className="inline-block">
+                <span data-w className="relative inline-block">
+                  {w}
+                  {UNDERLINE.has(w) && w === "Education" && (
+                    // A hand-drawn squiggle under "Education opens"
+                    <svg
+                      aria-hidden
+                      viewBox="0 0 240 22"
+                      preserveAspectRatio="none"
+                      className="pointer-events-none absolute -bottom-[0.32em] left-[-4%] h-[0.5em] w-[205%] overflow-visible"
+                    >
+                      <path
+                        data-squiggle
+                        d="M3 14C40 6 80 18 112 12 128 9 118 4 130 6 160 10 200 4 237 6"
+                        fill="none"
+                        stroke="#F47A2A"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        pathLength={1}
+                        strokeDasharray="1"
+                      />
+                    </svg>
+                  )}
+                </span>
+                {" "}
+              </span>
+            ))}
+          </h2>
         </div>
 
-        <div className="mt-14 grid gap-4 md:grid-cols-12">
+        {/* Cards */}
+        <ul
+          data-stats-grid
+          className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5"
+        >
           {/* Students */}
-          <Card className="bg-[#141012] text-white md:col-span-7">
-            <div aria-hidden className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-brand/40 blur-[90px]" />
-            <div className="flex h-full flex-col justify-between gap-10">
-              <div>
-                <div className="text-[clamp(4rem,10vw,8.5rem)] font-semibold leading-none tracking-[-0.05em]">
-                  <Roll value="1,000" />
-                  <span className="text-brand">+</span>
-                </div>
-                <Label>Enrolled students</Label>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex">
-                  {avatars.map((a, i) => (
-                    <span
-                      key={a.initials}
-                      data-avatar
-                      className="-ml-2 grid h-12 w-12 place-items-center rounded-full text-sm font-semibold text-ink ring-4 ring-[#141012] first:ml-0"
-                      style={{ background: a.bg, zIndex: i }}
-                    >
-                      {a.initials}
-                    </span>
-                  ))}
-                  <span
-                    data-avatar
-                    className="-ml-2 grid h-12 w-12 place-items-center rounded-full bg-[#2A2023] text-[11px] font-semibold ring-4 ring-[#141012]"
-                    style={{ zIndex: avatars.length }}
-                  >
-                    +995
-                  </span>
-                </div>
-                <p className="max-w-[16rem] text-sm leading-snug text-white/55">Students placed across Europe and the UK.</p>
-              </div>
+          <Card
+            style={{
+              background: "linear-gradient(160deg, #7C7CFF 0%, #5D5DF5 100%)",
+            }}
+          >
+            <Figure value={1000} suffix="+" label="Students enrolled" />
+            <div
+              data-student
+              className="absolute -bottom-2 left-6 h-[62%] w-[70%]"
+            >
+              <Image
+                src="/hero-student.webp"
+                alt=""
+                fill
+                loading="eager"
+                sizes="(min-width:1024px) 16rem, 60vw"
+                className="object-contain object-left-bottom transition-transform duration-700 group-hover:scale-105"
+              />
             </div>
           </Card>
 
-          {/* Years: one growth ring per year */}
-          <Card className="bg-[linear-gradient(150deg,#FFF0E3_0%,#FFC79E_100%)] text-ink md:col-span-5">
-            <div className="flex h-full items-center justify-between gap-4">
-              <div>
-                <div className="text-[clamp(3.6rem,7vw,6rem)] font-semibold leading-none tracking-[-0.05em]">
-                  <Roll value="13" />
-                </div>
-                <p className="mt-1 text-2xl font-semibold tracking-tight">Years</p>
-                <Label tone="dark">of experience</Label>
-              </div>
-              <svg viewBox="0 0 220 220" className="h-40 w-40 shrink-0 sm:h-48 sm:w-48" aria-hidden>
-                {Array.from({ length: RINGS }, (_, i) => (
-                  <circle
-                    key={i}
-                    data-ring
-                    cx="110"
-                    cy="110"
-                    r={10 + i * 7.6}
-                    fill="none"
-                    stroke={i === RINGS - 1 ? "#F47A2A" : "#B8673A"}
-                    strokeOpacity={i === RINGS - 1 ? 1 : 0.25 + (i / RINGS) * 0.5}
-                    strokeWidth={i === RINGS - 1 ? 3 : 1.6}
-                    pathLength={1}
-                    strokeDasharray="1"
-                    transform={`rotate(${-90 + i * 23} 110 110)`}
-                  />
-                ))}
-                <circle cx="110" cy="110" r="4" fill="#B8673A" />
-              </svg>
+          {/* Years */}
+          <Card
+            style={{
+              background: "linear-gradient(160deg, #FF8B3D 0%, #F26B1D 100%)",
+            }}
+          >
+            <Figure value={13} suffix="" label="Years of experience" />
+            {/* One bar per year, growing like a chart */}
+            <div
+              aria-hidden
+              className="absolute inset-x-6 bottom-6 flex h-[48%] items-end gap-[5%]"
+            >
+              {Array.from({ length: 13 }, (_, i) => (
+                <span
+                  key={i}
+                  data-bar
+                  className="flex-1 rounded-t-md transition-transform duration-500 group-hover:-translate-y-1"
+                  style={{
+                    height: `${18 + i * 6.4}%`,
+                    background:
+                      i === 12
+                        ? "#FFFFFF"
+                        : `rgba(255,255,255,${0.22 + i * 0.04})`,
+                    transitionDelay: `${i * 20}ms`,
+                  }}
+                />
+              ))}
             </div>
           </Card>
 
-          {/* Universities: one tile each */}
-          <Card className="border border-ink/10 bg-[#FBF7F2] text-ink md:col-span-5">
-            <div className="flex h-full items-center justify-between gap-6">
-              <div>
-                <div className="text-[clamp(3.6rem,7vw,6rem)] font-semibold leading-none tracking-[-0.05em]">
-                  <Roll value="36" />
-                  <span className="text-brand">+</span>
-                </div>
-                <Label tone="dark">Partnered universities</Label>
-              </div>
-              <div aria-hidden className="grid shrink-0 grid-cols-6 gap-1.5">
-                {Array.from({ length: TILES }, (_, i) => (
-                  <span
-                    key={i}
-                    data-tile
-                    className={`h-4 w-4 rounded-[5px] sm:h-5 sm:w-5 ${
-                      tileOrder[i] % 7 === 0 ? "bg-ink" : tileOrder[i] % 3 === 0 ? "bg-[#FFC79E]" : "bg-brand"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-          </Card>
-
-          {/* Branches: pins orbiting a globe */}
-          <Card className="bg-[linear-gradient(150deg,#F7924F_0%,#D9561A_100%)] text-white md:col-span-7">
-            <div className="flex h-full items-center justify-between gap-6">
-              <div>
-                <div className="text-[clamp(4rem,10vw,8.5rem)] font-semibold leading-none tracking-[-0.05em]">
-                  <Roll value="6" />
-                  <span className="text-[#141012]">+</span>
-                </div>
-                <Label>Branches worldwide</Label>
-              </div>
-              <svg viewBox="0 0 240 240" className="h-44 w-44 shrink-0 sm:h-56 sm:w-56" aria-hidden>
-                <circle cx="120" cy="120" r="70" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5" />
-                <ellipse cx="120" cy="120" rx="30" ry="70" fill="none" stroke="rgba(255,255,255,0.35)" />
-                <ellipse cx="120" cy="120" rx="55" ry="70" fill="none" stroke="rgba(255,255,255,0.25)" />
-                <path d="M50 120 H190 M58 85 H182 M58 155 H182" stroke="rgba(255,255,255,0.3)" />
-                <g data-orbit>
-                  <ellipse cx="120" cy="120" rx="108" ry="108" fill="none" stroke="rgba(255,255,255,0.35)" strokeDasharray="2 6" />
-                  {Array.from({ length: 6 }, (_, i) => {
-                    const a = (i / 6) * Math.PI * 2;
-                    // Rounded so server and browser agree on the markup.
-                    const x = Math.round((120 + Math.cos(a) * 108) * 100) / 100;
-                    const y = Math.round((120 + Math.sin(a) * 108) * 100) / 100;
-                    return (
-                      <g key={i} data-pin>
-                        <circle data-pin-pulse cx={x} cy={y} r="7" fill="#fff" opacity="0.5" />
-                        <circle cx={x} cy={y} r="6" fill="#fff" />
-                        <circle cx={x} cy={y} r="2.5" fill="#D9561A" />
-                      </g>
-                    );
-                  })}
+          {/* Branches */}
+          <Card
+            style={{
+              background: "linear-gradient(160deg, #A9C2FF 0%, #86A7FA 100%)",
+            }}
+          >
+            <Figure value={6} suffix="" label="Branches worldwide" />
+            {/* A dot-matrix world map with our offices and the route between them */}
+            <div className="absolute inset-x-0 bottom-0 h-[64%]">
+              <div
+                aria-hidden
+                className="absolute inset-x-0 bottom-0 h-full bg-[radial-gradient(70%_60%_at_60%_60%,rgba(255,255,255,0.35),transparent_70%)]"
+              />
+              <svg
+                data-map
+                aria-hidden
+                viewBox="34 0 46 34"
+                preserveAspectRatio="xMidYMid meet"
+                className="absolute inset-x-3 bottom-4 h-[85%] w-[calc(100%-1.5rem)] overflow-visible"
+              >
+                <defs>
+                  <radialGradient id="impact-glow">
+                    <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
+                    <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+                  </radialGradient>
+                </defs>
+                <g data-dots>
+                  {WORLD_DOTS.flatMap((row, r) =>
+                    [...row].map((ch, c) =>
+                      ch === "#" ? (
+                        <circle
+                          key={`${r}-${c}`}
+                          cx={c + 0.5}
+                          cy={r + 0.5}
+                          r={0.36}
+                          fill="#FFFFFF"
+                          fillOpacity={0.55}
+                        />
+                      ) : null,
+                    ),
+                  )}
                 </g>
+                {/* The route, drawn in; a bright spark keeps travelling along it */}
+                <path
+                  data-route
+                  d="M44.5 9.9 Q56.45 -2.0999999999999996 68.4 18.4"
+                  fill="none"
+                  stroke="#FFFFFF"
+                  strokeWidth="0.45"
+                  strokeDasharray="1.2 1"
+                  strokeLinecap="round"
+                  opacity="0.9"
+                />
+                <path
+                  data-spark
+                  d="M44.5 9.9 Q56.45 -2.0999999999999996 68.4 18.4"
+                  fill="none"
+                  stroke="#FFFFFF"
+                  strokeWidth="1.1"
+                  strokeLinecap="round"
+                  pathLength={1}
+                  strokeDasharray="0.08 0.92"
+                />
+                {OFFICES.map((o, i) => (
+                  <g key={o.city} data-pin>
+                    <circle
+                      data-pin-pulse
+                      cx={o.x}
+                      cy={o.y}
+                      r="2"
+                      fill="url(#impact-glow)"
+                    />
+                    <circle
+                      data-pin-dot
+                      cx={o.x}
+                      cy={o.y}
+                      r="1.1"
+                      fill="#3B4BDB"
+                      stroke="#FFFFFF"
+                      strokeWidth="0.45"
+                    />
+                    <rect
+                      x={i === 0 ? o.x - 11 : o.x - 4.5}
+                      y={o.y - 6.4}
+                      width="9"
+                      height="3.8"
+                      rx="1.9"
+                      fill="#FFFFFF"
+                    />
+                    <text
+                      x={i === 0 ? o.x - 6.5 : o.x}
+                      y={o.y - 3.75}
+                      textAnchor="middle"
+                      fontSize="2.1"
+                      fontWeight="600"
+                      fill="#3B4BDB"
+                    >
+                      {o.city}
+                    </text>
+                  </g>
+                ))}
               </svg>
             </div>
           </Card>
+
+          {/* Universities */}
+          <Card
+            style={{
+              background: "linear-gradient(160deg, #FFB627 0%, #FFD27A 100%)",
+            }}
+          >
+            <Figure value={36} suffix="+" label="Partner universities" />
+            <div className="absolute bottom-[12%] left-1/2 w-[78%] -translate-x-1/2">
+              <div data-cap>
+                <div data-cap-float>
+                  <Image
+                    src="/grad-cap.webp"
+                    alt=""
+                    width={431}
+                    height={388}
+                    loading="eager"
+                    className="h-auto w-full drop-shadow-[0_22px_22px_rgba(120,70,0,0.35)] transition-transform duration-700 group-hover:-rotate-6 group-hover:scale-105"
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+        </ul>
+
+        <div className="mt-14 flex justify-center">
+          <Link
+            data-cta
+            href="/consultation"
+            className="group inline-flex h-14 items-center gap-3 rounded-full bg-[#0B0B0C] pl-8 pr-2 text-base font-semibold text-white transition-transform duration-300 hover:-translate-y-0.5"
+          >
+            Start Your Journey
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-brand transition-transform duration-300 group-hover:rotate-[-45deg]">
+              <svg
+                viewBox="0 0 16 16"
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <path d="M3 8h10M9 4l4 4-4 4" />
+              </svg>
+            </span>
+          </Link>
         </div>
       </div>
     </section>

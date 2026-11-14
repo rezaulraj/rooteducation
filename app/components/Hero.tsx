@@ -1,502 +1,689 @@
 "use client";
 
-import { Fragment, useRef } from "react";
+import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import Campus from "./Campus";
-import DestinationReel from "./DestinationReel";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger, MotionPathPlugin);
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-type HeadingWord = { text: string; accent?: boolean; underline?: boolean };
-const headingLead: HeadingWord[] = [{ text: "Your" }, { text: "dream" }, { text: "university" }];
-// The two faces of the rolling line: the first is on show at rest, scrolling turns over to the second.
-const headingFront: HeadingWord[] = [{ text: "isn't" }, { text: "luck.", accent: true }];
-const headingBack: HeadingWord[] = [{ text: "It's" }, { text: "a" }, { text: "plan.", accent: true, underline: true }];
+const MAROON = "#2E1212";
+const ORANGE = "#F47A2A";
 
-/** A run of words, each masked and split into letters so they can move one by one. */
-function HeadingWords({ words, charProps, charClass = "" }: { words: HeadingWord[]; charProps: Record<string, boolean>; charClass?: string }) {
-  return words.map((word, wi) => (
-    <Fragment key={wi}>
-      {wi > 0 && " "}
-      <span className="relative inline-block">
-        <span className={`inline-block overflow-hidden pb-[0.12em] -mb-[0.12em] ${word.accent ? "text-brand" : ""}`}>
-          {word.text.split("").map((ch, ci) => (
-            <span key={ci} {...charProps} className={`inline-block will-change-transform ${charClass}`}>
-              {ch}
-            </span>
-          ))}
-        </span>
-        {word.underline && (
-          <svg viewBox="0 0 300 30" preserveAspectRatio="none" className="absolute -bottom-[0.14em] left-0 h-[0.22em] w-full overflow-visible" aria-hidden>
-            <path
-              data-underline
-              d="M4 20 C 70 6, 150 4, 296 14"
-              fill="none"
-              stroke="#141012"
-              strokeWidth="7"
-              strokeLinecap="round"
-              pathLength={1}
-              strokeDasharray="1"
-              strokeDashoffset="1"
-            />
-          </svg>
-        )}
-      </span>
-    </Fragment>
-  ));
+// The five steps. `at` is where each one floats around the photo at the start (desktop), as % of the stage.
+const STEPS = [
+  { text: "Find the right universities", at: ["61%", "44%"] },
+  { text: "Prepare for exams", at: ["28%", "50%"] },
+  { text: "Unlock scholarships", at: ["27%", "74%"] },
+  { text: "Plan your finances", at: ["60%", "22%"] },
+  { text: "Get visa ready", at: ["61%", "70%"] },
+];
+const PLAN = ["It's", "a", "plan."];
+
+function Tag() {
+  return (
+    <svg viewBox="0 0 14 9" className="h-2 w-3 shrink-0" aria-hidden>
+      <path d="M0 0h10l4 4.5-4 4.5H0z" fill={ORANGE} />
+    </svg>
+  );
 }
 
-// Back to front; depth drives parallax strength.
-const ridges = [
-  {
-    depth: 0.15,
-    from: "#F6B48A",
-    to: "#EE9566",
-    d: "M-100 560 L60 520 L180 545 L320 450 L440 515 L560 470 L690 540 L830 425 L960 515 L1090 455 L1210 525 L1330 465 L1540 520 V1400 H-100Z",
-  },
-  {
-    depth: 0.35,
-    from: "#D9774F",
-    to: "#B85A3E",
-    d: "M-100 650 L120 570 L250 620 L390 520 L520 610 L650 555 L770 630 L910 535 L1050 620 L1190 550 L1320 610 L1540 565 V1400 H-100Z",
-  },
-  {
-    depth: 0.6,
-    from: "#7A3F33",
-    to: "#4E2B28",
-    d: "M-100 745 L150 680 L300 730 L470 650 L640 735 L820 660 L990 745 L1160 675 L1320 735 L1540 690 V1400 H-100Z",
-  },
-  {
-    depth: 0.9,
-    from: "#2B1E1F",
-    to: "#141012",
-    d: "M-100 830 C200 770 420 805 640 795 C880 785 1100 745 1540 805 V1400 H-100Z",
-  },
-];
-
-const clouds = [
-  { x: 140, y: 170, s: 1.1, o: 0.85 },
-  { x: 1060, y: 130, s: 1.3, o: 0.75 },
-  { x: 560, y: 300, s: 0.7, o: 0.55 },
-  { x: 1250, y: 330, s: 0.8, o: 0.6 },
-];
-
-const flightPath = "M-60 640 C 220 470, 480 330, 760 320 S 1240 210, 1520 110";
-
-// What the journey covers: scattered around the graduate, then gathered into one list.
-const steps = ["Find the right universities", "Unlock scholarships", "Plan your finances", "Prepare for exams", "Get visa ready"];
-// Where each label floats before gathering, as [left %, top %] of the hero.
-const scatter: [number, number][] = [
-  [63, 50],
-  [9, 62],
-  [72, 38],
-  [13, 46],
-  [74, 64],
-];
-const LIST = { left: 71, top: 47, gap: 40 };
-
-const grain =
-  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")";
+function Arrow() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M3 8h10M9 4l4 4-4 4" />
+    </svg>
+  );
+}
 
 export default function Hero() {
   const root = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
+      const stage = root.current!.querySelector<HTMLElement>("[data-h-stage]")!;
+      const card = stage.querySelector<HTMLElement>("[data-h-card]")!;
+      const labels = gsap.utils.toArray<HTMLElement>("[data-h-label]");
+
+      /** An anchor's box, relative to the stage. Anchors are never transformed, so this is their layout box. */
+      const box = (sel: string) => {
+        const s = stage.getBoundingClientRect();
+        const r = stage
+          .querySelector<HTMLElement>(sel)!
+          .getBoundingClientRect();
+        return {
+          x: r.left - s.left,
+          y: r.top - s.top,
+          w: r.width,
+          h: r.height,
+        };
+      };
+      // Card targets as function-based values, so they are re-measured whenever the page is resized.
+      const cardAt = (
+        sel: string,
+        radius: (b: { w: number; h: number }) => number,
+      ) => ({
+        x: () => box(sel).x,
+        y: () => box(sel).y,
+        width: () => box(sel).w,
+        height: () => box(sel).h,
+        borderRadius: () => radius(box(sel)),
+      });
+      const c0 = cardAt("[data-a-card0]", (b) => b.w / 2);
+      const c1 = cardAt("[data-a-card1]", () => 56);
+      const c2 = cardAt("[data-a-card2]", () => 28);
+
       const mm = gsap.matchMedia();
+      mm.add(
+        {
+          desktop: "(min-width: 768px)",
+          motion: "(prefers-reduced-motion: no-preference)",
+        },
+        (ctx) => {
+          const { desktop, motion } = ctx.conditions as {
+            desktop: boolean;
+            motion: boolean;
+          };
 
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        // Entrance: landscape rises layer by layer, then the heading types itself up from a mask.
-        const tl = gsap.timeline({ defaults: { ease: "expo.out" }, delay: 0.5 });
-        tl.from("[data-ridge]", { y: 260, duration: 1.6, stagger: 0.12 })
-          .from("[data-sun]", { y: 220, scale: 0.6, duration: 2, transformOrigin: "50% 50%" }, 0.1)
-          .from("[data-cloud]", { autoAlpha: 0, x: -60, duration: 1.6, stagger: 0.15 }, 0.3)
-          .from("[data-eyebrow]", { y: 20, autoAlpha: 0, duration: 0.9 }, 0.5)
-          .from("[data-char]", { yPercent: 115, rotate: 12, duration: 1.1, stagger: 0.022 }, 0.6)
-          .from("[data-fade]", { y: 24, autoAlpha: 0, duration: 1, stagger: 0.1 }, "-=0.7");
+          // Without motion, show the finished layout.
+          if (!motion) {
+            gsap.set(card, c2);
+            gsap.set(card, { boxShadow: "0 0 0 1px rgba(46,18,18,0.05)" });
+            gsap.set(
+              "[data-h-big], [data-h-cta0], [data-h-chip], [data-h-wave]",
+              { autoAlpha: 0 },
+            );
+            gsap.set("[data-h-tint]", { opacity: 0 });
+            gsap.set("[data-h-white]", { opacity: 1 });
+            gsap.set("[data-h-final], [data-h-word]", { autoAlpha: 1 });
+            gsap.set("[data-h-cap]", { y: 0, rotation: 0, autoAlpha: 1 });
+            if (desktop) {
+              labels.forEach((l, i) => {
+                const a = box(`[data-a-step="${i}"]`);
+                gsap.set(l, { x: a.x - l.offsetLeft, y: a.y - l.offsetTop });
+              });
+            } else gsap.set(labels, { autoAlpha: 0 });
+            return;
+          }
 
-        // Ambient: drifting clouds and a breathing sun.
-        gsap.utils.toArray<SVGGElement>("[data-cloud]").forEach((c, i) => {
-          gsap.to(c, { x: `+=${70 + i * 25}`, duration: 9 + i * 3, ease: "sine.inOut", yoyo: true, repeat: -1 });
-        });
-        gsap.to("[data-sun-glow]", { scale: 1.12, opacity: 0.75, duration: 3.5, ease: "sine.inOut", yoyo: true, repeat: -1, transformOrigin: "50% 50%" });
+          gsap.set(card, c0);
 
-        // A plane draws its route across the sky, on loop.
-        gsap
-          .timeline({ repeat: -1, repeatDelay: 1.5, delay: 2 })
-          .set(["[data-trail]", "[data-plane]"], { opacity: 1 })
-          .fromTo("[data-trail-mask]", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 7, ease: "none" }, 0)
-          .to(
-            "[data-plane]",
-            {
-              motionPath: { path: "[data-flight]", align: "[data-flight]", alignOrigin: [0.5, 0.5], autoRotate: true },
-              duration: 7,
-              ease: "none",
+          // Arrival: the capsule grows in, the heading rises, the steps drift in and the ribbon draws.
+          gsap
+            .timeline({ delay: 0.15, defaults: { ease: "expo.out" } })
+            .fromTo(
+              card,
+              { scale: 0.6, autoAlpha: 0 },
+              { scale: 1, autoAlpha: 1, duration: 1.4 },
+              0,
+            )
+            .fromTo(
+              "[data-h-student]",
+              { yPercent: 25 },
+              { yPercent: 0, duration: 1.4 },
+              0.1,
+            )
+            .fromTo(
+              "[data-h-line]",
+              { yPercent: 115 },
+              { yPercent: 0, duration: 1.2, stagger: 0.1 },
+              0.2,
+            )
+            .fromTo(
+              "[data-h-wave] path, [data-h-swoosh]",
+              { strokeDashoffset: 1 },
+              { strokeDashoffset: 0, duration: 2.2, ease: "power2.inOut" },
+              0,
+            )
+            .fromTo(
+              labels,
+              { scale: 0.8, autoAlpha: 0 },
+              {
+                scale: 1,
+                autoAlpha: 1,
+                duration: 1,
+                stagger: 0.08,
+                ease: "power3.out",
+              },
+              0.6,
+            )
+            .fromTo(
+              "[data-h-chip], [data-h-cta0]",
+              { y: 16, autoAlpha: 0 },
+              {
+                y: 0,
+                autoAlpha: 1,
+                duration: 0.9,
+                stagger: 0.1,
+                ease: "power3.out",
+              },
+              0.9,
+            );
+
+          // While waiting, the steps float gently. This moves an inner wrapper so the scroll can move the outer one.
+          const floatEls = gsap.utils.toArray<HTMLElement>("[data-h-float]");
+          const floats = floatEls.map((el, i) =>
+            gsap.to(el, {
+              y: i % 2 ? 8 : -8,
+              duration: 2.4 + i * 0.3,
+              ease: "sine.inOut",
+              yoyo: true,
+              repeat: -1,
+              delay: 1.4,
+            }),
+          );
+          // Floating stops as soon as the scroll begins, so every step settles exactly into the list.
+          let floating = true;
+          const setFloating = (on: boolean) => {
+            if (on === floating) return;
+            floating = on;
+            floats.forEach((t) => (on ? t.restart(true) : t.pause()));
+            if (!on)
+              gsap.to(floatEls, { y: 0, duration: 0.35, ease: "power2.out" });
+          };
+
+          // Scroll: capsule → wide card with the campus in blue → full card in warm colours → "It's a plan." and the cap.
+          const tl = gsap.timeline({
+            defaults: { ease: "power2.inOut" },
+            scrollTrigger: {
+              trigger: stage,
+              pin: true,
+              start: "top top",
+              end: "+=260%",
+              scrub: 0.9,
+              invalidateOnRefresh: true,
+              onUpdate: (self) => setFloating(self.progress < 0.04),
             },
+          });
+          tl.fromTo(
+            card,
+            { ...c0, immediateRender: false },
+            { ...c1, duration: 1 },
             0,
           )
-          .to(["[data-trail]", "[data-plane]"], { opacity: 0, duration: 1 }, "+=0.2");
+            .fromTo(
+              card,
+              {
+                boxShadow:
+                  "0 0 0 10px rgba(255,255,255,0.92), 0 40px 80px -40px rgba(46,18,18,0.35)",
+              },
+              {
+                boxShadow:
+                  "0 0 0 0px rgba(255,255,255,0), 0 40px 80px -40px rgba(46,18,18,0.3)",
+                duration: 0.5,
+                ease: "power1.out",
+              },
+              0,
+            )
+            .fromTo(
+              "[data-h-campus]",
+              { opacity: 0 },
+              { opacity: 1, duration: 0.8 },
+              0.2,
+            )
+            .to("[data-h-tint]", { opacity: 0.55, duration: 0.8 }, 0.2)
+            .to("[data-h-wave]", { autoAlpha: 0.35, duration: 0.8 }, 0.2)
+            .to("[data-h-chip]", { autoAlpha: 0, y: 20, duration: 0.5 }, 0.7)
+            // The big heading drifts into the card's corner and hands over to the small orange one.
+            .to(
+              "[data-h-big]",
+              {
+                x: () => box("[data-a-head]").x - box("[data-a-big]").x,
+                y: () => box("[data-a-head]").y - box("[data-a-big]").y,
+                scale: 0.55,
+                autoAlpha: 0,
+                duration: 1.4,
+                transformOrigin: "0% 0%",
+              },
+              0.8,
+            )
+            .to(card, { ...c2, duration: 1.2 }, 1.1)
+            // As the card fills the hero its shadow melts away, so the bottom blends into the white page below.
+            .to(card, { boxShadow: "0 0 0 1px rgba(46,18,18,0.05), 0 0px 0px 0px rgba(46,18,18,0)", duration: 1 }, 1.3)
+            .to("[data-h-tint]", { opacity: 0, duration: 1 }, 1.2)
+            // The peach wash behind the card dissolves to pure white as the card fills the hero.
+            .fromTo("[data-h-white]", { opacity: 0 }, { opacity: 1, duration: 1.3, ease: "power1.inOut" }, 0.9)
+            .to("[data-h-wave]", { autoAlpha: 0, duration: 0.6 }, 1.3)
+            .to("[data-h-cta0]", { autoAlpha: 0, y: 20, duration: 0.5 }, 1.1)
+            .fromTo(
+              "[data-h-head]",
+              { autoAlpha: 0, y: 20 },
+              { autoAlpha: 1, y: 0, duration: 0.6 },
+              1.8,
+            )
+            .fromTo(
+              "[data-h-badge]",
+              { autoAlpha: 0, x: 30 },
+              { autoAlpha: 1, x: 0, duration: 0.6 },
+              1.9,
+            );
 
-        // Pointer parallax.
-        const movers = gsap.utils.toArray<HTMLElement>("[data-depth]").map((el) => ({
-          depth: Number(el.dataset.depth),
-          x: gsap.quickTo(el, "x", { duration: 1.2, ease: "power3.out" }),
-        }));
-        const onMove = (e: PointerEvent) => {
-          const nx = e.clientX / window.innerWidth - 0.5;
-          movers.forEach((m) => m.x(-nx * 60 * m.depth));
-        };
-        window.addEventListener("pointermove", onMove);
-
-        // Scroll parallax: the hero holds still while its layers travel at their own depth.
-        // The sun sets, ridges rise and the graduate steps up from behind the cards, just under the text,
-        // while his institute rises into the sunset behind him.
-        // Everything moves; nothing fades.
-        const scene = gsap.timeline({
-          defaults: { ease: "none" },
-          scrollTrigger: { trigger: root.current, start: "top top", end: "+=230%", pin: true, scrub: 0.6, invalidateOnRefresh: true },
-        });
-        scene
-          .to("[data-content]", { y: -110, scale: 0.8, transformOrigin: "50% 0%", duration: 1, ease: "power1.inOut" }, 0)
-          .to("[data-sunset]", { y: 120, duration: 1 }, 0)
-          .to("[data-ridge-wrap]", { y: (i, el) => -60 - Number((el as HTMLElement).dataset.lift) * 90, duration: 1 }, 0)
-          .to("[data-sky]", { y: 40, duration: 1 }, 0)
-          .fromTo("[data-student]", { y: 0, yPercent: 100, scale: 0.92 }, { y: 0, yPercent: 0, scale: 1, transformOrigin: "50% 100%", duration: 0.75, ease: "power2.out" }, 0.2)
-          .fromTo("[data-halo]", { scale: 0.4 }, { scale: 1, duration: 0.8, ease: "power2.out" }, 0.2)
-          // The institute climbs out from behind the hills; the far tower lags for depth,
-          // then the windows light up against the sunset.
-          .fromTo("[data-institute]", { y: 420 }, { y: 0, duration: 0.85, ease: "power2.out" }, 0.25)
-          .fromTo("[data-institute-far]", { y: 300 }, { y: 0, duration: 1, ease: "power2.out" }, 0.3)
-          .fromTo("[data-institute-glow]", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 0.8)
-          .fromTo("[data-institute-mist]", { x: 160 }, { x: -80, duration: 1.2 }, 0.25);
-
-        // The headline's second face: each letter of "isn't luck." rolls up and away around an axis
-        // behind the text, and "It's a plan." rolls up into place after it, then gets underlined.
-        const faceChars = gsap.utils.toArray<HTMLElement>("[data-face-front], [data-face-back]");
-        const setFaceOrigin = () => {
-          const size = parseFloat(getComputedStyle(root.current!.querySelector("h1")!).fontSize);
-          gsap.set(faceChars, { transformOrigin: `50% 50% ${-size * 0.45}px`, transformPerspective: size * 9 });
-        };
-        setFaceOrigin();
-        ScrollTrigger.addEventListener("refresh", setFaceOrigin);
-        scene
-          .to("[data-face-front]", { rotationX: 90, autoAlpha: 0, duration: 0.2, stagger: 0.016, ease: "power2.inOut" }, 0.06)
-          .fromTo("[data-face-back]", { rotationX: -90, autoAlpha: 0 }, { rotationX: 0, autoAlpha: 1, duration: 0.2, stagger: 0.016, ease: "power2.inOut" }, 0.1)
-          .fromTo("[data-underline]", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.2, ease: "power2.inOut" }, 0.42);
-
-        // Steps: each label sits in the list slot it will end in, offset out to its scattered spot.
-        // They reveal while the graduate rises, drift gently, then glide home and join up.
-        const hero = root.current!.firstElementChild as HTMLElement;
-        const offset = (i: number) => ({
-          x: ((scatter[i][0] - LIST.left) / 100) * hero.offsetWidth,
-          y: ((scatter[i][1] - LIST.top) / 100) * hero.offsetHeight - i * LIST.gap,
-        });
-        const drift = { k: 1 };
-        scene
-          .fromTo("[data-step-text]", { y: 0, yPercent: 110 }, { y: 0, yPercent: 0, duration: 0.3, stagger: 0.07, ease: "power3.out" }, 0.4)
-          .fromTo("[data-step-dot]", { scale: 0 }, { scale: 1, duration: 0.25, stagger: 0.07, ease: "back.out(2)" }, 0.4)
-          .fromTo(
-            "[data-step]",
-            { x: (i: number) => offset(i).x, y: (i: number) => offset(i).y },
-            { x: 0, y: 0, duration: 0.45, stagger: 0.05, ease: "power3.inOut" },
-            1.1,
-          )
-          .to(drift, { k: 0, duration: 0.35, ease: "power2.out" }, 1.1)
-          .to("[data-step-dot]", {
-            width: 14,
-            height: 14,
-            backgroundColor: (i: number) => (i === 0 ? "#F47A2A" : "#2A1A1C"),
-            duration: 0.3,
-            stagger: 0.05,
-          }, 1.25)
-          .fromTo("[data-steps-line]", { scaleY: 0 }, { scaleY: 1, duration: 0.35, ease: "power2.inOut" }, 1.4);
-
-        // Slow, independent drift for each label while scattered; fades to stillness as they gather.
-        const floats = gsap.utils.toArray<HTMLElement>("[data-step-float]");
-        const bob = (time: number) => {
-          floats.forEach((el, i) => {
-            gsap.set(el, {
-              x: Math.cos(time * 0.55 + i * 1.3) * 5 * drift.k,
-              y: Math.sin(time * 0.8 + i * 1.7) * 8 * drift.k,
+          if (desktop) {
+            // Each floating step glides into its place in the list, then the timeline line is drawn behind them.
+            labels.forEach((l, i) => {
+              tl.to(
+                l,
+                {
+                  x: () => box(`[data-a-step="${i}"]`).x - l.offsetLeft,
+                  y: () => box(`[data-a-step="${i}"]`).y - l.offsetTop,
+                  scale: 1.18,
+                  transformOrigin: "0% 50%",
+                  duration: 0.9,
+                  ease: "power3.inOut",
+                },
+                1.55 + i * 0.1,
+              );
             });
-          });
-        };
-        gsap.ticker.add(bob);
+            tl.to("[data-h-tag]", { autoAlpha: 0, duration: 0.4 }, 1.5);
 
-        return () => {
-          window.removeEventListener("pointermove", onMove);
-          gsap.ticker.remove(bob);
-          ScrollTrigger.removeEventListener("refresh", setFaceOrigin);
-        };
-      });
+            tl.fromTo(
+              "[data-h-rail]",
+              { scaleY: 0 },
+              { scaleY: 1, transformOrigin: "50% 0%", duration: 0.8 },
+              2.25,
+            ).fromTo(
+              "[data-h-dot]",
+              { scale: 0 },
+              { scale: 1, duration: 0.4, stagger: 0.1, ease: "back.out(3)" },
+              2.3,
+            );
+          } else {
+            tl.to(
+              labels,
+              { autoAlpha: 0, y: -20, duration: 0.5, stagger: 0.03 },
+              0.6,
+            );
+          }
 
-      // Reduced motion: both faces are stacked in the markup, so only the underline needs setting.
-      mm.add("(prefers-reduced-motion: reduce)", () => {
-        gsap.set("[data-underline]", { strokeDashoffset: 0 });
-      });
+          tl.fromTo(
+            "[data-h-word]",
+            { yPercent: 60, autoAlpha: 0, color: "#C9BEBC" },
+            {
+              yPercent: 0,
+              autoAlpha: 1,
+              color: MAROON,
+              duration: 0.8,
+              stagger: 0.35,
+              ease: "power3.out",
+            },
+            2.5,
+          )
+            // The cap falls from above and settles on her head with a little bounce.
+            .fromTo(
+              "[data-h-cap]",
+              {
+                yPercent: -340,
+                xPercent: -18,
+                rotation: -32,
+                scale: 0.85,
+                autoAlpha: 0,
+              },
+              {
+                yPercent: 6,
+                xPercent: 2,
+                rotation: 5,
+                scale: 1,
+                autoAlpha: 1,
+                duration: 1,
+                ease: "power3.out",
+              },
+              2.9,
+            )
+            .to(
+              "[data-h-cap]",
+              {
+                yPercent: 0,
+                xPercent: 0,
+                rotation: 0,
+                duration: 0.45,
+                ease: "back.out(2.2)",
+              },
+              3.9,
+            )
+            .fromTo(
+              "[data-h-cta1]",
+              { autoAlpha: 0, x: 30 },
+              { autoAlpha: 1, x: 0, duration: 0.6 },
+              3.3,
+            )
+            .to({}, { duration: 0.6 });
+
+          return () => gsap.set(card, { clearProps: "all" });
+        },
+      );
     },
     { scope: root },
   );
 
   return (
-    // The padded wrapper is what pins, so the white gutter around the rounded scene stays put.
-    <div ref={root} className="bg-white px-3 pt-3">
-    <section className="relative h-[calc(100svh-24px)] min-h-[780px] overflow-hidden rounded-[28px] bg-[linear-gradient(180deg,#FFF3E8_0%,#FFDDBF_38%,#FCB383_68%,#F58A45_100%)] sm:min-h-[800px]">
-      {/* Sky: clouds + flight route */}
-      <svg
-        data-sky
-        className="absolute inset-0 h-full w-full"
-        viewBox="0 0 1440 900"
-        preserveAspectRatio="xMidYMid slice"
-        aria-hidden
+    <div ref={root} className="overflow-hidden bg-white px-3 pt-3">
+      <section
+        data-h-stage
+        aria-labelledby="hero-title"
+        className="relative h-[calc(100svh-24px)] min-h-[640px] overflow-hidden rounded-[28px]"
+        style={{
+          background:
+            "radial-gradient(70% 55% at 50% 0%, #FFD9BF 0%, rgba(255,217,191,0) 70%), linear-gradient(180deg, #FFE7D6 0%, #FFF4EC 30%, #FFFFFF 60%)",
+        }}
       >
-        <defs>
-          <mask id="trail-mask" maskUnits="userSpaceOnUse">
-            <path
-              data-trail-mask
-              d={flightPath}
-              fill="none"
-              stroke="#fff"
-              strokeWidth="8"
-              pathLength={1}
-              strokeDasharray="1"
-              strokeDashoffset="1"
-            />
-          </mask>
-          <filter id="cloud-blur" x="-20%" y="-50%" width="140%" height="200%">
-            <feGaussianBlur stdDeviation="6" />
-          </filter>
-        </defs>
+        {/* A white layer that fades in over the peach background while scrolling */}
+        <div data-h-white aria-hidden className="pointer-events-none absolute inset-0 bg-white opacity-0" />
 
-        <g data-depth="0.25">
-          {clouds.map((c, i) => (
-            <g key={i} data-cloud opacity={c.o} transform={`translate(${c.x} ${c.y}) scale(${c.s})`}>
-              <g fill="#fff" filter="url(#cloud-blur)">
-                <ellipse cx="0" cy="18" rx="120" ry="26" />
-                <ellipse cx="-40" cy="2" rx="52" ry="34" />
-                <ellipse cx="25" cy="-8" rx="62" ry="44" />
-                <ellipse cx="80" cy="10" rx="44" ry="28" />
-              </g>
-            </g>
-          ))}
-        </g>
-
-        <g data-depth="0.45">
-          <path data-flight d={flightPath} fill="none" stroke="none" />
-          <path
-            data-trail
-            opacity="0"
-            d={flightPath}
-            fill="none"
-            stroke="#fff"
-            strokeOpacity="0.85"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeDasharray="2 12"
-            mask="url(#trail-mask)"
-          />
-          <g data-plane opacity="0">
-            <g transform="translate(-16 -16)">
-              <path
-                d="M30 16c0-1.1-.9-2-2-2h-8.5L12 3.5H9.2L12.8 14H6.5L4 10.8H2l1.6 5.2L2 21.2h2l2.5-3.2h6.3L9.2 28.5H12l7.5-10.5H28c1.1 0 2-.9 2-2z"
-                fill="#141012"
-              />
-            </g>
-          </g>
-        </g>
-      </svg>
-
-      {/* Content */}
-      <div
-        data-content
-        className="relative z-30 mx-auto flex max-w-5xl flex-col items-center px-6 pt-[clamp(120px,16vh,170px)] text-center"
-      >
-        <span
-          data-eyebrow
-          className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/55 px-4 py-1.5 text-[0.8rem] font-medium text-ink/75 backdrop-blur-md"
-        >
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inset-0 animate-ping rounded-full bg-brand/70" />
-            <span className="relative h-2 w-2 rounded-full bg-brand" />
-          </span>
-          Admissions open for 2027 intakes
-        </span>
-
-        <h1
-          aria-label="Your dream university isn't luck. It's a plan."
-          className="mt-6 text-[clamp(2.5rem,6.6vw,5.6rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-ink"
-        >
-          <span className="block">
-            <HeadingWords words={headingLead} charProps={{ "data-char": true }} />
-          </span>
-          <span className="grid justify-items-center">
-            <span className="block motion-safe:col-start-1 motion-safe:row-start-1">
-              <HeadingWords words={headingFront} charProps={{ "data-char": true, "data-face-front": true }} />
-            </span>
-            <span className="block motion-safe:col-start-1 motion-safe:row-start-1">
-              <HeadingWords words={headingBack} charProps={{ "data-face-back": true }} charClass="motion-safe:invisible" />
-            </span>
-          </span>
-        </h1>
-
-        <p data-fade className="mt-7 max-w-xl text-[1.05rem] leading-relaxed text-ink/70 sm:text-lg">
-          Expert guidance from your first question to your first lecture — universities, applications, scholarships
-          and visas, handled with care.
-        </p>
-
-        <div data-fade className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href="/consultation"
-            className="group inline-flex h-12 items-center gap-3 rounded-2xl bg-ink pl-5 pr-2 text-sm font-semibold text-white shadow-[0_14px_30px_-12px_rgba(20,16,18,0.6)] transition-transform hover:-translate-y-0.5"
-          >
-            Book a free consultation
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-brand transition-transform duration-300 group-hover:rotate-[-45deg]">
-              <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 8h10M9 4l4 4-4 4" />
-              </svg>
-            </span>
-          </Link>
-          <Link
-            href="/study-abroad"
-            className="inline-flex h-12 items-center rounded-2xl border border-white bg-white/85 px-5 text-sm font-semibold text-ink backdrop-blur-md transition-colors hover:bg-white/80"
-          >
-            Explore countries
-          </Link>
-        </div>
-      </div>
-
-      {/* Landscape */}
-      <svg
-        className="absolute inset-x-0 bottom-0 h-[50%] w-full"
-        viewBox="0 380 1440 520"
-        preserveAspectRatio="xMidYMin slice"
-        overflow="visible"
-        aria-hidden
-      >
-        <defs>
-          {ridges.map((r, i) => (
-            <linearGradient key={i} id={`ridge-${i}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor={r.from} />
-              <stop offset="1" stopColor={r.to} />
-            </linearGradient>
-          ))}
-          <radialGradient id="sun-glow">
-            <stop offset="0" stopColor="#FFF4E2" stopOpacity="0.95" />
-            <stop offset="0.45" stopColor="#FFD2A3" stopOpacity="0.55" />
-            <stop offset="1" stopColor="#FFB37A" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-
-        <g data-depth="0.08">
-          <g data-sunset>
-          <g data-sun>
-            <circle data-sun-glow cx="720" cy="480" r="260" fill="url(#sun-glow)" opacity="0.6" />
-            <circle cx="720" cy="480" r="92" fill="#FFE6C7" />
-          </g>
-          </g>
-        </g>
-
-        {ridges.slice(0, -1).map((r, i) => (
-          <g key={i} data-ridge-wrap data-lift={r.depth}>
-            <g data-depth={r.depth}>
-              <path data-ridge d={r.d} fill={`url(#ridge-${i})`} />
-            </g>
-          </g>
-        ))}
-      </svg>
-
-      {/* The institute rises between the far ridges and the front hill */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 motion-reduce:hidden">
-        <Campus />
-      </div>
-
-      <svg
-        className="absolute inset-x-0 bottom-0 h-[50%] w-full"
-        viewBox="0 380 1440 520"
-        preserveAspectRatio="xMidYMin slice"
-        overflow="visible"
-        aria-hidden
-      >
-        {ridges.slice(-1).map((r) => (
-          <g key="front" data-ridge-wrap data-lift={r.depth}>
-            <g data-depth={r.depth}>
-              <path data-ridge d={r.d} fill={`url(#ridge-${ridges.length - 1})`} />
-            </g>
-          </g>
-        ))}
-      </svg>
-
-      {/* Painterly grain */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.12] mix-blend-multiply"
-        style={{ backgroundImage: grain }}
-      />
-
-      {/* Curved reel of destinations and services */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-t from-[#141012]/80 via-[#141012]/30 to-transparent" />
-      <div className="absolute inset-x-0 bottom-0 z-[25] h-[210px] sm:h-[290px]">
-        <DestinationReel className="absolute inset-0" />
-      </div>
-
-      {/* Journey steps: scattered around the graduate, then gathered into a timeline list */}
-      <div aria-label="How we help" className="pointer-events-none absolute inset-0 z-[28] hidden motion-reduce:hidden lg:block">
-        <span
-          data-steps-line
+        {/* ---------- Anchors: invisible boxes that mark where things end up ---------- */}
+        <div
           aria-hidden
-          className="absolute w-[2px] origin-top scale-y-0 rounded-full bg-[#2A1A1C]/80"
-          style={{ left: `calc(${LIST.left}% + 6px)`, top: `calc(${LIST.top}% + 10px)`, height: (steps.length - 1) * LIST.gap }}
-        />
-        <ol>
-          {steps.map((step, i) => (
-            <li
-              key={step}
-              data-step
-              className="absolute"
-              style={{ left: `${LIST.left}%`, top: `calc(${LIST.top}% + ${i * LIST.gap}px)` }}
-            >
-              <div data-step-float className="flex h-5 items-center gap-3">
-                <span className="flex w-[14px] justify-center">
-                  <span data-step-dot className="block h-1.5 w-3 scale-0 rounded-full bg-brand" />
-                </span>
-                <span className="block overflow-hidden">
-                  <span
-                    data-step-text
-                    className="block translate-y-full whitespace-nowrap text-[13px] font-semibold uppercase tracking-[0.06em] text-ink [text-shadow:0_1px_12px_rgba(255,236,214,0.9)]"
+          className="pointer-events-none invisible absolute inset-0"
+        >
+          <div
+            data-a-card0
+            className="absolute left-1/2 top-[32%] h-[min(52svh,400px)] w-[min(52vw,215px)] -translate-x-1/2 md:top-[22%] md:h-[min(60svh,440px)] md:w-[min(17vw,240px)]"
+          />
+          <div
+            data-a-card1
+            className="absolute left-1/2 top-[24%] h-[54svh] w-[88vw] -translate-x-1/2 md:top-[20%] md:h-[min(62svh,470px)] md:w-[min(54vw,720px)]"
+          />
+          <div
+            data-a-card2
+            className="absolute inset-x-3 bottom-3 top-[88px] sm:inset-x-6 sm:bottom-6"
+          >
+            <div
+              data-a-head
+              className="absolute left-[6%] top-[7%] h-10 w-40"
+            />
+            <ul className="absolute right-[4%] top-[34%] hidden w-[17rem] md:block">
+              {STEPS.map((s, i) => (
+                <li key={s.text} data-a-step={i} className="mb-4 h-6 pl-8" />
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* ---------- The peach ribbon ---------- */}
+        <svg
+          data-h-wave
+          aria-hidden
+          viewBox="0 0 1440 600"
+          preserveAspectRatio="none"
+          className="pointer-events-none absolute inset-x-0 top-[22%] h-[70%] w-full"
+        >
+          <path
+            d="M-40 420C120 470 230 600 410 560S640 400 720 270 920 110 1110 140 1390 230 1490 250"
+            fill="none"
+            stroke="#FFD3B6"
+            strokeWidth="34"
+            strokeLinecap="round"
+            pathLength={1}
+            strokeDasharray="1"
+          />
+        </svg>
+
+        {/* ---------- The big opening heading ---------- */}
+        <div
+          data-a-big
+          className="absolute inset-x-6 top-[96px] z-20 text-center md:left-[max(24px,calc(50%-27rem))] md:right-auto md:top-[12%] md:text-left"
+        >
+          <h1
+            id="hero-title"
+            data-h-big
+            className="text-[clamp(2.5rem,4.4vw,4rem)] font-semibold leading-[0.98] tracking-[-0.045em]"
+            style={{ color: MAROON }}
+          >
+            <span className="block overflow-hidden pb-[0.04em]">
+              <span data-h-line className="block">
+                Your Dream
+              </span>
+            </span>
+            <span className="block overflow-hidden pb-[0.04em]">
+              <span data-h-line className="block">
+                University
+              </span>
+            </span>
+            <span className="block overflow-hidden pb-[0.18em]">
+              <span data-h-line className="block">
+                isn&apos;t{" "}
+                <span
+                  className="relative inline-block"
+                  style={{ color: ORANGE }}
+                >
+                  luck.
+                  {/* A hand-drawn underline that draws itself in */}
+                  <svg
+                    aria-hidden
+                    viewBox="0 0 200 24"
+                    preserveAspectRatio="none"
+                    className="absolute -bottom-[0.16em] left-[-4%] h-[0.32em] w-[104%] overflow-visible"
                   >
-                    {step}
-                  </span>
+                    <path
+                      data-h-swoosh
+                      d="M4 16C46 6 110 4 196 12"
+                      fill="none"
+                      stroke={ORANGE}
+                      strokeWidth="6"
+                      strokeLinecap="round"
+                      pathLength={1}
+                      strokeDasharray="1"
+                    />
+                  </svg>
                 </span>
+              </span>
+            </span>
+          </h1>
+        </div>
+
+        {/* ---------- The card ---------- */}
+        <div
+          data-h-card
+          className="absolute left-0 top-0 z-10 overflow-hidden bg-[#9FB6FF] shadow-[0_0_0_10px_rgba(255,255,255,0.92),0_40px_80px_-40px_rgba(46,18,18,0.35)] will-change-transform"
+        >
+          <div data-h-campus className="absolute inset-0 opacity-0">
+            <Image
+              src="/card-bg-campus.webp"
+              alt=""
+              fill
+              sizes="(min-width: 768px) 96vw, 100vw"
+              loading="eager"
+              className="object-cover object-[70%_50%]"
+            />
+          </div>
+          <div
+            data-h-tint
+            aria-hidden
+            className="absolute inset-0 bg-[#A9BEFF]"
+          />
+
+          {/* Content that appears once the card is full size */}
+          <div data-h-final className="pointer-events-none absolute inset-0">
+            <div className="absolute left-[6%] right-[6%] top-[7%] md:right-auto">
+              <p
+                data-h-head
+                className="invisible text-[clamp(1.5rem,2.7vw,2.6rem)] font-semibold leading-[1.1] tracking-[-0.02em] text-[#F47A2A]"
+              >
+                Your Dream
+                <br />
+                University isn&apos;t luck.
+              </p>
+              <p
+                aria-label="It's a plan."
+                className="mt-1 flex flex-wrap gap-x-[0.22em] text-[clamp(3rem,7.4vw,7rem)] font-semibold leading-[1] tracking-[-0.045em]"
+              >
+                {PLAN.map((w) => (
+                  <span
+                    key={w}
+                    aria-hidden
+                    className="overflow-hidden pb-[0.1em]"
+                  >
+                    <span data-h-word className="invisible inline-block">
+                      {w}
+                    </span>
+                  </span>
+                ))}
+              </p>
+            </div>
+            <div
+              data-h-badge
+              className="invisible absolute right-[4%] top-[6%] hidden items-center gap-2.5 md:flex"
+            >
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-[#232D4B] p-[7px] shadow-[0_0_0_3px_#E57200,0_8px_18px_-8px_rgba(0,0,0,0.5)]">
+                <Image
+                  src="/univercity/logos/uva-rotunda.png"
+                  alt=""
+                  width={30}
+                  height={31}
+                  className="h-full w-full object-contain"
+                />
+              </span>
+              <span className="text-lg font-medium" style={{ color: MAROON }}>
+                University Of Virginia
+              </span>
+            </div>
+            {/* Timeline behind the listed steps */}
+            <div className="absolute right-[4%] top-[34%] hidden w-[17rem] md:block">
+              <ul className="relative">
+                <span
+                  data-h-rail
+                  aria-hidden
+                  className="absolute left-[6px] top-3 bottom-7 w-[2px] origin-top"
+                  style={{ background: MAROON }}
+                />
+                {STEPS.map((s, i) => (
+                  <li key={s.text} className="relative mb-4 h-6">
+                    <span
+                      data-h-dot
+                      aria-hidden
+                      className="absolute left-0 top-1/2 h-[14px] w-[14px] -translate-y-1/2 rounded-full"
+                      style={{
+                        background: i === 0 ? ORANGE : MAROON,
+                      }}
+                    />
+                  </li>
+                ))}
+              </ul>
+              <Link
+                data-h-cta1
+                href="/consultation"
+                className="pointer-events-auto invisible mt-2 inline-flex h-14 items-center gap-3 pl-7 pr-12 text-base font-semibold text-white transition-transform hover:translate-x-1 [clip-path:polygon(0_0,calc(100%-22px)_0,100%_50%,calc(100%-22px)_100%,0_100%)]"
+                style={{ background: MAROON, borderRadius: "12px 0 0 12px" }}
+              >
+                Start Your Journey
+              </Link>
+            </div>
+            <Link
+              data-h-cta1
+              href="/consultation"
+              className="pointer-events-auto invisible absolute bottom-5 left-1/2 inline-flex h-12 -translate-x-1/2 items-center gap-2 rounded-2xl px-6 text-sm font-semibold text-white md:hidden"
+              style={{ background: MAROON }}
+            >
+              Start Your Journey <Arrow />
+            </Link>
+          </div>
+
+          {/* The student, with the cap that lands on her head */}
+          <div className="absolute bottom-0 left-1/2 aspect-[760/910] h-[min(94%,34rem)] -translate-x-1/2">
+            <div data-h-student className="relative h-full w-full">
+              <Image
+                src="/hero-student.webp"
+                alt="A smiling student holding her books"
+                fill
+                loading="eager"
+                fetchPriority="high"
+                sizes="(min-width: 768px) 30rem, 80vw"
+                className="object-contain object-bottom"
+              />
+              <div
+                data-h-cap
+                className="invisible absolute left-[11.7%] top-[-13.4%] w-[75%]"
+              >
+                <Image
+                  src="/grad-cap.webp"
+                  alt=""
+                  width={431}
+                  height={388}
+                  loading="eager"
+                  className="h-auto w-full drop-shadow-[0_18px_20px_rgba(0,0,0,0.25)]"
+                />
               </div>
+            </div>
+          </div>
+
+          {/* The university chip shown on the capsule */}
+          <div className="absolute inset-x-0 bottom-[6%] flex justify-center px-3">
+            <div
+              data-h-chip
+              className="invisible flex w-max max-w-full items-center gap-2 rounded-2xl bg-white/85 py-1.5 pl-1.5 pr-3 shadow-[0_12px_30px_-12px_rgba(35,45,75,0.55)] ring-1 ring-white/70 backdrop-blur-md"
+            >
+              <Image
+                src="/univercity/logos/uva-rotunda.png"
+                alt=""
+                width={34}
+                height={35}
+                className="h-8 w-8 shrink-0 rounded-full bg-[#232D4B] object-contain p-1.5 ring-2 ring-[#E57200]"
+              />
+              <span className="min-w-0 text-left leading-tight">
+                <Image
+                  src="/univercity/logos/uva-wordmark.png"
+                  alt="University of Virginia"
+                  width={110}
+                  height={35}
+                  className="h-[0.95rem] w-auto"
+                />
+                <span className="mt-0.5 block whitespace-nowrap text-[0.52rem] font-semibold uppercase tracking-[0.04em] text-[#E57200]">
+                  Placed with scholarship
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ---------- The five steps ---------- */}
+        <ul aria-label="How we help" className="contents">
+          {STEPS.map((s, i) => (
+            <li
+              key={s.text}
+              data-h-label
+              className="invisible absolute z-20 hidden md:block"
+              style={{ left: s.at[0], top: s.at[1] }}
+            >
+              <span
+                data-h-float
+                className="flex items-center gap-3 whitespace-nowrap pl-8 text-[0.78rem] font-medium uppercase tracking-[0.02em]"
+                style={{ color: MAROON }}
+              >
+                <span
+                  data-h-tag
+                  className="-ml-8 mr-1 inline-flex w-4 justify-center"
+                  aria-hidden
+                >
+                  <Tag />
+                </span>
+                {s.text}
+              </span>
+              <span className="sr-only">Step {i + 1}</span>
             </li>
           ))}
-        </ol>
-      </div>
+        </ul>
 
-      {/* The graduate: rises between the scenery and the text, in front of a warm halo */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex h-[56%] justify-center motion-reduce:hidden sm:h-[67%]">
-        <div
-          data-halo
-          aria-hidden
-          className="absolute left-1/2 top-[8%] -ml-[min(32vw,340px)] aspect-square w-[min(64vw,680px)] rounded-full bg-[radial-gradient(circle,rgba(255,244,226,0.95)_0%,rgba(255,200,150,0.55)_38%,rgba(244,122,42,0)_70%)]"
-        />
-        <Image
-          data-student="center"
-          src="/centerstudent.png"
-          alt="Smiling graduate pointing to his diploma"
-          width={1368}
-          height={1150}
-          loading="eager"
-          sizes="(min-width: 640px) 70vw, 120vw"
-          className="relative h-full w-auto max-w-none translate-y-full drop-shadow-[0_30px_50px_rgba(20,16,18,0.45)]"
-        />
-      </div>
-    </section>
+        {/* ---------- First call to action ---------- */}
+        <div className="absolute inset-x-0 bottom-[6%] z-20 flex justify-center md:bottom-[9%] md:left-[60%] md:right-auto md:block">
+          <Link
+            data-h-cta0
+            href="/consultation"
+            className="invisible inline-flex h-12 items-center gap-2 whitespace-nowrap rounded-full bg-[#0B0B0C] px-7 text-sm font-semibold text-white transition-colors hover:bg-[#2E1212]"
+          >
+            Get Your University Shortlist
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

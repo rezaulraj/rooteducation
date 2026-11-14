@@ -224,6 +224,21 @@ export default function WhyRoot() {
         const intro = section.querySelector<HTMLElement>("[data-why-intro]")!;
         const INTRO_SCALE = 0.5;
         const introLift = () => -window.innerHeight * 0.05;
+        // The deck sits just below the shrunken headline, leaving room underneath for the tilted plates and
+        // their shadow. Measured from the real headline, so it works on any screen height.
+        const stack = section.querySelector<HTMLElement>("[data-why-stack]")!;
+        const layoutStack = () => {
+          const i = layoutRect(intro, section);
+          const titleBottom = i.y + intro.offsetHeight * INTRO_SCALE + introLift();
+          const H = section.offsetHeight;
+          const room = Math.max(64, H * 0.11);
+          const top = titleBottom + 14;
+          stack.style.top = `${top}px`;
+          stack.style.height = `${Math.max(320, H - top - room)}px`;
+        };
+        layoutStack();
+        ScrollTrigger.addEventListener("refreshInit", layoutStack);
+
         const tagOnTitle = (t: number) => {
           const i = layoutRect(intro, section);
           const g = box(tagEls[t]);
@@ -344,7 +359,12 @@ export default function WhyRoot() {
 
         tl.to({}, { duration: 0.4 });
 
-        return () => section.classList.remove("pinned");
+        return () => {
+          ScrollTrigger.removeEventListener("refreshInit", layoutStack);
+          stack.style.top = "";
+          stack.style.height = "";
+          section.classList.remove("pinned");
+        };
       });
     },
     { scope: root },
@@ -355,7 +375,7 @@ export default function WhyRoot() {
       {/* Headline with floating keyword tags */}
       <div
         data-why-intro
-        className="relative px-6 pb-12 pt-24 text-center group-[.pinned]/why:absolute group-[.pinned]/why:inset-x-0 group-[.pinned]/why:top-0 group-[.pinned]/why:pt-[20vh]"
+        className="relative px-6 pb-12 pt-24 text-center group-[.pinned]/why:absolute group-[.pinned]/why:inset-x-0 group-[.pinned]/why:top-0 group-[.pinned]/why:pt-[clamp(88px,15vh,150px)]"
       >
         <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-brand">
           <span className="h-3.5 w-5 bg-brand [clip-path:polygon(0_0,70%_0,100%_50%,70%_100%,0_100%)]" />
@@ -388,7 +408,7 @@ export default function WhyRoot() {
       {/* Stacked cards */}
       <div
         data-why-stack
-        className="relative mx-auto max-w-5xl px-4 pb-24 group-[.pinned]/why:absolute group-[.pinned]/why:inset-x-0 group-[.pinned]/why:top-[33vh] group-[.pinned]/why:h-[58vh] group-[.pinned]/why:pb-0"
+        className="relative mx-auto max-w-5xl px-4 pb-24 group-[.pinned]/why:absolute group-[.pinned]/why:inset-x-0 group-[.pinned]/why:pb-0"
       >
         {/* Backing plates, grown from the Universities and "$" tags */}
         {plateTags.map((t) => (
@@ -414,9 +434,9 @@ export default function WhyRoot() {
                 <div data-why-skin aria-hidden className="pointer-events-none absolute inset-0 z-20 opacity-0" style={{ background: tags[returnTag[k]].bg }} />
               )}
               {c.theme === "ink" && <div aria-hidden className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-brand/30 blur-[100px]" />}
-              <div className="relative flex flex-col justify-center gap-5 p-8 sm:p-12">
+              <div className="relative flex flex-col justify-center gap-5 p-8 sm:p-12 group-[.pinned]/why:gap-4 group-[.pinned]/why:p-7 sm:group-[.pinned]/why:p-10">
                 <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${t.kicker}`}>{c.kicker}</p>
-                <h3 className="text-[clamp(2rem,3.6vw,3.2rem)] font-semibold leading-[1.02] tracking-[-0.03em]">
+                <h3 className="text-[clamp(2rem,3.6vw,3.2rem)] font-semibold leading-[1.02] tracking-[-0.03em] group-[.pinned]/why:text-[clamp(1.7rem,min(3.2vw,5.2vh),3rem)]">
                   {c.title.split(" ").map((w, i) => (
                     <span key={i} className="mr-[0.25em] inline-block overflow-hidden pb-[0.06em] align-bottom">
                       <span data-why-line className="inline-block">
