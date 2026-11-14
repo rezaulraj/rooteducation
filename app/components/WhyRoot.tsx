@@ -28,16 +28,16 @@ const cards: {
 }[] = [
   {
     kicker: "Services",
-    title: "Find where your goals take you",
-    copy: "Every student starts with a dream. We map the route, from the first conversation to the right course.",
+    title: "Find Where Your Goals Take You",
+    copy: "Every student starts with a dream, but not everyone knows how to take it global. Root Education opens that door.",
     theme: "ink",
     items: [
-      { label: "Study abroad consultation", mark: iconMark("compass"), tint: "#F47A2A" },
-      { label: "University selection", mark: iconMark("university"), tint: "#7FB59C" },
-      { label: "Application assistance", mark: iconMark("document"), tint: "#FBB524" },
-      { label: "Visa guidance", mark: iconMark("passport"), tint: "#6C7BEA" },
-      { label: "Scholarships & aid", mark: iconMark("scholarship"), tint: "#E0663B" },
-      { label: "Pre-departure briefing", mark: iconMark("plane"), tint: "#5AA0E6" },
+      { label: "Find the Right Universities", mark: iconMark("university"), tint: "#2A2C8F" },
+      { label: "Education Loan", mark: iconMark("document"), tint: "#6F86C4" },
+      { label: "Unlock Scholarships", mark: iconMark("scholarship"), tint: "#F47A2A" },
+      { label: "Plan Your Finances", mark: iconMark("compass"), tint: "#FBB524" },
+      { label: "Get Visa Ready", mark: iconMark("passport"), tint: "#4F5BD5" },
+      { label: "Prepare for Exams", mark: iconMark("plane"), tint: "#7A1F2A" },
     ],
   },
   {
@@ -95,7 +95,7 @@ const universityRows: { name: string; country: string }[][] = [
 ];
 
 const themes = {
-  ink: { card: "bg-[#141012] text-white", copy: "text-white/60", kicker: "text-brand" },
+  ink: { card: "bg-[#03032E] text-white", copy: "text-white/80", kicker: "text-brand" },
   orange: { card: "bg-[linear-gradient(150deg,#F7924F_0%,#D9561A_100%)] text-white", copy: "text-white/75", kicker: "text-[#141012]" },
   peach: { card: "bg-[linear-gradient(150deg,#FFF0E3_0%,#FFC79E_100%)] text-ink", copy: "text-ink/65", kicker: "text-brand" },
   light: { card: "bg-[#FBF7F2] text-ink", copy: "text-ink/65", kicker: "text-brand" },
@@ -105,7 +105,7 @@ const themes = {
 const tags: { label: ReactNode; bg: string; fg: string; pos: [number, number, number] }[] = [
   { label: "Universities", bg: "#F47A2A", fg: "#141012", pos: [4, 4, -6] },
   { label: "Scholarships", bg: "#FBB524", fg: "#141012", pos: [44, 30, 4] },
-  { label: <span className="text-xl font-bold">$</span>, bg: "#FFC79E", fg: "#141012", pos: [86, -4, 8] },
+  { label: <span className="text-xl font-bold">$</span>, bg: "#9DB7FF", fg: "#141012", pos: [86, -4, 8] },
   { label: <Icon name="scholarship" className="h-5 w-5" />, bg: "#141012", fg: "#FFFFFF", pos: [12, 58, -4] },
   { label: "Visa", bg: "#7FB59C", fg: "#141012", pos: [80, 70, -8] },
 ];
@@ -433,9 +433,8 @@ export default function WhyRoot() {
                 // Tag-coloured skin: shown while the card is (or is becoming) a tag.
                 <div data-why-skin aria-hidden className="pointer-events-none absolute inset-0 z-20 opacity-0" style={{ background: tags[returnTag[k]].bg }} />
               )}
-              {c.theme === "ink" && <div aria-hidden className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-brand/30 blur-[100px]" />}
               <div className="relative flex flex-col justify-center gap-5 p-8 sm:p-12 group-[.pinned]/why:gap-4 group-[.pinned]/why:p-7 sm:group-[.pinned]/why:p-10">
-                <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${t.kicker}`}>{c.kicker}</p>
+                <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${t.kicker} ${c.theme === "ink" ? "sr-only" : ""}`}>{c.kicker}</p>
                 <h3 className="text-[clamp(2rem,3.6vw,3.2rem)] font-semibold leading-[1.02] tracking-[-0.03em] group-[.pinned]/why:text-[clamp(1.7rem,min(3.2vw,5.2vh),3rem)]">
                   {c.title.split(" ").map((w, i) => (
                     <span key={i} className="mr-[0.25em] inline-block overflow-hidden pb-[0.06em] align-bottom">

@@ -1,282 +1,272 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import { countries } from "./Header";
+import { MAP_H, project } from "./officeMap";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger, MotionPathPlugin);
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-const VIEW = { w: 1200, h: 800 };
+const MAROON = "#2E1212";
+const ORANGE = "#F47A2A";
 
-// Simple equirectangular projection covering Western Europe to South Asia.
-const project = (lon: number, lat: number) => [Math.round((lon + 22) * 9), Math.round((65 - lat) * 11)];
-const shape = (coords: number[]) => {
-  const pts: string[] = [];
-  for (let i = 0; i < coords.length; i += 2) pts.push(project(coords[i], coords[i + 1]).join(","));
-  return pts.join(" ");
-};
-
-// Deliberately coarse coastlines, as lon,lat pairs: the hatching hides the simplification.
-const land = [
-  // Eurasia
-  [-9, 37, -9, 43, -2, 43.5, -1, 46, -4.5, 48.5, 2, 51, 4, 52, 8, 54, 8.5, 57, 10.5, 57.5, 10, 54.5, 14, 54, 19, 54.5, 21, 57, 24, 59, 30, 60, 23, 60, 21.5, 63, 25, 67, 125, 67, 125, 21, 106, 19, 109, 12, 105, 9, 103, 11, 100, 13, 99, 10, 100.5, 6, 102, 3, 100, 3, 98, 8, 98.5, 15, 97, 17, 94.5, 16, 94, 19, 92, 21.5, 90, 22, 87, 21, 85, 19.5, 80.5, 15, 80, 10, 77.5, 8, 76, 11, 73, 18, 72.5, 21, 70, 21, 67, 25, 61, 25, 57, 26.5, 56.5, 27, 51, 28, 48, 30, 50, 26, 52, 24, 56, 26, 59, 22.5, 55, 17, 45, 13, 43, 13, 39, 21, 35, 28, 34.5, 31, 36, 36, 30, 36.5, 27, 37, 26.5, 40, 23, 40, 24, 38, 22.5, 36.5, 20, 39.5, 19, 42, 14, 45, 18, 40, 16, 38, 12, 42, 9, 44, 3, 43, 0, 39, -2, 36.8, -5.5, 36],
-  // Scandinavia
-  [5, 59, 7, 58, 11, 59, 12.5, 56, 14.5, 56, 17, 59, 18, 62, 22, 67, 13, 67, 6, 62.5],
-  // Great Britain, Ireland, Sri Lanka
-  [-5.5, 50, 1.5, 51, 0, 54, -2, 56, -3, 58.5, -6, 58, -5, 55, -3.5, 53.5, -5, 52],
-  [-10, 52, -6, 52, -6, 55, -8, 55.3, -10, 54],
-  [80, 9.5, 82, 7.5, 80.5, 6],
-  // Africa
-  [-16, 30, -6, 35.7, 10, 37, 11, 33, 20, 31, 25, 31.5, 34, 31, 32.5, 29.5, 36, 22, 39, 15, 43, 11.5, 51, 11.5, 47, 4, 42, -4, 39, -10, 13, -10, 9, 4, 5, 6, -8, 4.5, -13, 8, -17, 14.7, -17, 21, -13, 27],
-];
-const seas = [
-  [28, 41.5, 31, 46, 37, 45.5, 41, 42, 35, 42],
-  [47, 45, 53, 46, 53, 39, 50, 37, 49, 40],
-];
-
-const offices = [
+const OFFICES = [
   {
     city: "London",
-    region: "United Kingdom",
+    country: "United Kingdom",
     address: "7 Kirkdale House, London, E11 1HP",
     timeZone: "Europe/London",
-    flag: countries.find((c) => c.name === "UK")!.flag,
-    at: project(0, 51.57),
-    label: [-30, 30],
-    card: "bg-[linear-gradient(150deg,#F7924F_0%,#D9561A_100%)] text-white",
-    muted: "text-white/75",
+    at: project(-0.006, 51.567),
+    photo: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=900&q=80&auto=format&fit=crop",
+    alt: "Tower Bridge and the City of London",
   },
   {
     city: "Dhaka",
-    region: "Bangladesh",
-    address: "Road 15, Sector 12, Uttara, Dhaka, Bangladesh-1230",
+    country: "Bangladesh",
+    address: "Road 15, Sector 12, Uttara, Dhaka 1230",
     timeZone: "Asia/Dhaka",
-    flag: "radial-gradient(circle at 45% 50%,#F42A41 32%,#006A4E 33%)",
     at: project(90.4, 23.87),
-    label: [-170, 30],
-    card: "bg-[linear-gradient(150deg,#2A2023_0%,#141012_100%)] text-white",
-    muted: "text-white/65",
+    photo: "https://images.unsplash.com/photo-1630987871777-f7b2d62894d0?w=900&q=80&auto=format&fit=crop",
+    alt: "The Dhaka skyline under a blue sky",
   },
 ];
 
-const [a, b] = offices.map((o) => o.at);
-const routePath = `M${a[0]} ${a[1]} Q${(a[0] + b[0]) / 2} ${Math.min(a[1], b[1]) - 150} ${b[0]} ${b[1]}`;
+// Study destinations our routes lead to.
+const DESTINATIONS: [string, number, number][] = [
+  ["Dublin", -6.26, 53.35],
+  ["Madrid", -3.7, 40.42],
+  ["Rome", 12.5, 41.9],
+  ["Valletta", 14.51, 35.9],
+  ["Budapest", 19.04, 47.5],
+  ["Vilnius", 25.28, 54.69],
+  ["Athens", 23.73, 37.98],
+  ["Bucharest", 26.1, 44.43],
+  ["Nicosia", 33.38, 35.17],
+];
 
-function LocalTime({ now, timeZone }: { now: Date | null; timeZone: string }) {
-  // Rendered only after mount, so server and browser markup always agree.
-  if (!now) return <span className="invisible">00:00</span>;
-  return <span>{now.toLocaleTimeString("en-GB", { timeZone, hour: "2-digit", minute: "2-digit" })}</span>;
+const r1 = (n: number) => Math.round(n * 10) / 10;
+const ZOOM = { w: 300, h: 240 };
+const viewOf = (i: number) => {
+  const [x, y] = OFFICES[i].at;
+  // Dhaka sits near the map's eastern edge, so it is framed towards the right, with routes fanning in from the west.
+  const fx = i === 0 ? 0.45 : 0.8;
+  return `${r1(x - ZOOM.w * fx)} ${r1(y - ZOOM.h * 0.6)} ${ZOOM.w} ${ZOOM.h}`;
+};
+/** A curved route between two map points, bowing upwards. */
+function arc([x1, y1]: number[], [x2, y2]: number[]) {
+  const mx = (x1 + x2) / 2;
+  const my = (y1 + y2) / 2 - Math.hypot(x2 - x1, y2 - y1) * 0.28;
+  return `M${r1(x1)} ${r1(y1)}Q${r1(mx)} ${r1(my)} ${r1(x2)} ${r1(y2)}`;
+}
+
+function LocalTime({ timeZone }: { timeZone: string }) {
+  // Read the clock only in the browser, so the server and browser markup agree.
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    const tick = () => setNow(new Date());
+    const first = setTimeout(tick, 0);
+    const id = setInterval(tick, 30_000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(id);
+    };
+  }, []);
+  return <span className={now ? "" : "invisible"}>{(now ?? new Date(0)).toLocaleTimeString("en-GB", { timeZone, hour: "2-digit", minute: "2-digit" })}</span>;
 }
 
 export default function Offices() {
   const root = useRef<HTMLElement>(null);
-  const camera = useRef({ s: 1, x: 0, y: 0 });
-  const [active, setActive] = useState<number | null>(null);
-  const [now, setNow] = useState<Date | null>(null);
+  const [sel, setSel] = useState(0);
+  const mapRef = useRef<SVGSVGElement>(null);
+  const [hover, setHover] = useState(false);
+  const pick = (i: number) => setSel(((i % OFFICES.length) + OFFICES.length) % OFFICES.length);
 
+  // Cycle between offices on its own, unless the reader is hovering.
   useEffect(() => {
-    const tick = () => setNow(new Date());
-    const first = window.setTimeout(tick, 0);
-    const id = window.setInterval(tick, 30000);
-    return () => {
-      window.clearTimeout(first);
-      window.clearInterval(id);
-    };
-  }, []);
+    if (hover) return;
+    const t = setTimeout(() => pick(sel + 1), 5000);
+    return () => clearTimeout(t);
+     
+  }, [sel, hover]);
+  const o = OFFICES[sel];
 
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const [lx, ly] = offices[0].at;
-        gsap.set("[data-land-mask]", { attr: { cx: lx, cy: ly } });
-
-        // On arrival: the map opens, land spreads out from London, then the route flies to Dhaka.
         gsap
-          .timeline({ defaults: { ease: "power3.out" }, scrollTrigger: { trigger: root.current, start: "top 65%" } })
-          .from("[data-off-head] > *", { y: 36, autoAlpha: 0, duration: 0.9, stagger: 0.1 })
-          .fromTo("[data-map-card]", { clipPath: "inset(12% 12% 12% 12% round 60px)" }, { clipPath: "inset(0% 0% 0% 0% round 28px)", duration: 1.2, ease: "expo.out" }, 0.1)
-          .fromTo("[data-land-mask]", { attr: { r: 0 } }, { attr: { r: 1500 }, duration: 2, ease: "power2.inOut" }, 0.2)
-          .fromTo("[data-pin='0']", { scale: 0, svgOrigin: offices[0].at.join(" ") }, { scale: 1, duration: 0.6, ease: "back.out(3)" }, 0.5)
-          .fromTo("[data-route]", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.4, ease: "power2.inOut" }, 0.9)
-          .fromTo("[data-pin='1']", { scale: 0, svgOrigin: offices[1].at.join(" ") }, { scale: 1, duration: 0.6, ease: "back.out(3)" }, 2)
-          .fromTo("[data-map-label]", { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.4 }, 1.1)
-          .fromTo("[data-office]", { x: 70, rotation: 3, autoAlpha: 0 }, { x: 0, rotation: 0, autoAlpha: 1, duration: 1, stagger: 0.15 }, 0.5);
+          .timeline({ scrollTrigger: { trigger: root.current, start: "top 75%" } })
+          .fromTo("[data-o-eyebrow]", { x: -20, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.7, ease: "power3.out" })
+          .fromTo("[data-o-line]", { yPercent: 115 }, { yPercent: 0, duration: 1.1, stagger: 0.1, ease: "expo.out" }, 0.1)
+          .fromTo("[data-o-side]", { y: 20, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.8, stagger: 0.1, ease: "power3.out" }, 0.3);
 
-        gsap.to("[data-pin-pulse]", { scale: 2.6, opacity: 0, duration: 2, ease: "power1.out", repeat: -1, stagger: 0.6, transformOrigin: "50% 50%" });
-        gsap
-          .timeline({ repeat: -1, repeatDelay: 0.8, scrollTrigger: { trigger: root.current, start: "top 40%" } })
-          .set("[data-off-plane]", { opacity: 1 })
-          .to("[data-off-plane]", {
-            motionPath: { path: "[data-route]", align: "[data-route]", alignOrigin: [0.5, 0.5], autoRotate: true },
-            duration: 6,
-            ease: "power1.inOut",
-          })
-          .to("[data-off-plane]", { opacity: 0, duration: 0.3 });
+        const tl = gsap.timeline({ defaults: { ease: "expo.out" }, scrollTrigger: { trigger: "[data-o-grid]", start: "top 78%" } });
+        tl.fromTo("[data-o-card]", { y: 60, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.1, stagger: 0.12 })
+          .fromTo("[data-o-land]", { opacity: 0 }, { opacity: 1, duration: 1.2, ease: "power1.out" }, 0.2)
+          .fromTo("[data-o-route]", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.6, stagger: 0.07, ease: "power2.inOut" }, 0.8)
+          .fromTo("[data-o-dest]", { attr: { r: 0 } }, { attr: { r: 2.4 }, duration: 0.5, stagger: 0.07, ease: "back.out(3)" }, 1.6)
+          .fromTo("[data-o-dot]", { attr: { r: 0 } }, { attr: { r: 4 }, duration: 0.7, stagger: 0.2, ease: "back.out(3)" }, 1)
+          .fromTo("[data-o-count]", { textContent: 0 }, { textContent: OFFICES.length, duration: 1.4, snap: { textContent: 1 }, ease: "power2.out" }, 0.5);
+
+        gsap.to("[data-o-pulse]", { attr: { r: 14 }, opacity: 0, duration: 2, ease: "power1.out", repeat: -1, stagger: 0.7 });
       });
     },
     { scope: root },
   );
 
-  // Choosing an office flies the map's camera to its pin, clamped so the map still fills the card.
+  // Switching office: the photo and details crossfade.
   useGSAP(
     () => {
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const s = active === null ? 1 : 1.9;
-      const [px, py] = active === null ? [VIEW.w / 2, VIEW.h / 2] : offices[active].at;
-      gsap.to(camera.current, {
-        s,
-        x: gsap.utils.clamp(VIEW.w - VIEW.w * s, 0, VIEW.w / 2 - px * s),
-        y: gsap.utils.clamp(VIEW.h - VIEW.h * s, 0, VIEW.h / 2 - py * s),
-        duration: reduce ? 0 : 1.3,
-        ease: "power3.inOut",
-        overwrite: true,
-        onUpdate: () => {
-          const c = camera.current;
-          root.current?.querySelector("[data-map-camera]")?.setAttribute("transform", `translate(${c.x} ${c.y}) scale(${c.s})`);
-        },
-      });
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      gsap.to(mapRef.current, { attr: { viewBox: viewOf(sel) }, duration: 1.6, ease: "power3.inOut" });
+      gsap.fromTo("[data-o-city]", { y: 10, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.5, ease: "power3.out" });
+      gsap.fromTo("[data-o-photo]", { scale: 1.12, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.9, ease: "power3.out" });
+      gsap.fromTo("[data-o-info] > *", { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.5, stagger: 0.06, ease: "power3.out" });
     },
-    { scope: root, dependencies: [active] },
+    { scope: root, dependencies: [sel], revertOnUpdate: true },
   );
 
+
   return (
-    <section ref={root} aria-labelledby="offices-title" className="overflow-hidden bg-white px-3 py-24 sm:py-32">
-      <div className="mx-auto max-w-6xl px-3">
-        <div data-off-head className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+    <section ref={root} aria-labelledby="offices-title" className="overflow-hidden bg-white px-6 py-24 sm:py-32" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+      <div className="mx-auto max-w-6xl">
+        {/* Heading */}
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-              <span className="h-3.5 w-5 bg-brand [clip-path:polygon(0_0,70%_0,100%_50%,70%_100%,0_100%)]" />
+            <p data-o-eyebrow className="inline-flex items-center gap-2.5 text-sm font-semibold uppercase tracking-[0.04em] text-[#5A4FF0]">
+              <svg viewBox="0 0 26 18" className="h-[14px] w-[20px]" aria-hidden>
+                <path d="M3 0H18Q20 0 21.3 1.6L25.4 7.6Q26.4 9 25.4 10.4L21.3 16.4Q20 18 18 18H3Q0 18 0 15V3Q0 0 3 0Z" fill="#5A4FF0" />
+              </svg>
               Our offices
             </p>
-            <h2 id="offices-title" className="mt-4 text-[clamp(2.4rem,5.4vw,4.6rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-ink">
-              Come and <span className="text-brand">meet us.</span>
+            <h2 id="offices-title" className="mt-4 text-[clamp(2.2rem,4.6vw,3.6rem)] font-semibold leading-[1.02] tracking-[-0.04em]" style={{ color: MAROON }}>
+              <span className="block overflow-hidden pb-[0.05em]">
+                <span data-o-line className="block">
+                  Find Your Nearest
+                </span>
+              </span>
+              <span className="block overflow-hidden pb-[0.1em]">
+                <span data-o-line className="block">
+                  Root Education Office
+                </span>
+              </span>
             </h2>
           </div>
           <div className="max-w-sm">
-            <p className="text-base leading-relaxed text-ink/60">
-              Sit down with an advisor in person, ask your questions and leave with a clear next step.
+            <p data-o-side className="text-base leading-relaxed text-[#2E1212]/70">
+              Visit us in London or Dhaka. Meet an advisor in person, ask your questions and leave with a clear plan at your own pace.
             </p>
-            <Link href="/contact" className="mt-5 inline-flex h-12 items-center rounded-full bg-ink px-6 text-sm font-semibold text-white transition-colors hover:bg-brand">
-              Plan your visit
+            <Link
+              data-o-side
+              href="/consultation"
+              className="group mt-5 inline-flex h-12 items-center gap-3 rounded-full bg-[#0B0B0C] pl-6 pr-2 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
+            >
+              Book an office visit
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-brand transition-transform duration-300 group-hover:rotate-[-45deg]">
+                <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M3 8h10M9 4l4 4-4 4" />
+                </svg>
+              </span>
             </Link>
           </div>
         </div>
 
-        <div className="mt-14 grid gap-4 lg:grid-cols-12">
-          {/* Map */}
-          <div data-map-card className="relative aspect-[3/2] overflow-hidden rounded-[28px] bg-[#FFEBDC] lg:col-span-8 lg:aspect-auto lg:min-h-[560px]">
+        <div data-o-grid className="mt-14 grid gap-4 lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)]">
+          {/* The map, zoomed in on the selected office */}
+          <div data-o-card className="relative h-[24rem] overflow-hidden rounded-[22px] sm:h-[30rem] lg:row-span-2 lg:h-auto lg:min-h-[32rem]" style={{ background: "#E3E1FF" }}>
             <svg
-              viewBox={`0 0 ${VIEW.w} ${VIEW.h}`}
+              ref={mapRef}
+              viewBox={viewOf(0)}
               preserveAspectRatio="xMidYMid slice"
               className="absolute inset-0 h-full w-full"
+              aria-label={`Map showing our ${o.city} office and routes to our study destinations`}
               role="img"
-              aria-label="Map showing our offices in London and Dhaka, joined by a flight route"
             >
               <defs>
-                <pattern id="land-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)">
-                  <rect width="7" height="7" fill="#FFD2B0" />
-                  <line x1="0" y1="2" x2="7" y2="2" stroke="#F47A2A" strokeWidth="2.4" />
+                <pattern id="o-grid" width="9" height="9" patternUnits="userSpaceOnUse">
+                  <path d="M9 0H0V9" fill="none" stroke="#CFCCFF" strokeWidth="0.35" />
                 </pattern>
-                <pattern id="sea-grid" width="80" height="80" patternUnits="userSpaceOnUse">
-                  <path d="M80 0H0V80" fill="none" stroke="#F47A2A" strokeOpacity="0.12" />
-                </pattern>
-                <mask id="land-reveal" maskUnits="userSpaceOnUse" x="-200" y="-200" width="1600" height="1200">
-                  <circle data-land-mask cx="150" cy="148" r="1500" fill="#fff" />
-                </mask>
               </defs>
-              <g data-map-camera>
-                <rect x="-200" y="-200" width="1600" height="1200" fill="url(#sea-grid)" />
-                <g mask="url(#land-reveal)">
-                  {land.map((c, i) => (
-                    <polygon key={i} points={shape(c)} fill="url(#land-hatch)" stroke="#F47A2A" strokeOpacity="0.5" strokeLinejoin="round" />
-                  ))}
-                  {seas.map((c, i) => (
-                    <polygon key={i} points={shape(c)} fill="#FFEBDC" />
-                  ))}
-                </g>
-
-                <path data-route d={routePath} fill="none" stroke="#141012" strokeWidth="3" pathLength={1} strokeDasharray="1" />
-                <g data-off-plane opacity="0" fill="#141012">
-                  <g transform="translate(-16 -16)">
-                    <path d="M30 16c0-1.1-.9-2-2-2h-8.5L12 3.5H9.2L12.8 14H6.5L4 10.8H2l1.6 5.2L2 21.2h2l2.5-3.2h6.3L9.2 28.5H12l7.5-10.5H28c1.1 0 2-.9 2-2z" />
-                  </g>
-                </g>
-
-                {offices.map((o, i) => (
-                  <g key={o.city}>
-                    <g data-pin={i}>
-                      <circle data-pin-pulse cx={o.at[0]} cy={o.at[1]} r="15" fill="#141012" opacity="0.35" />
-                      <circle cx={o.at[0]} cy={o.at[1]} r="17" fill="#fff" />
-                      <circle cx={o.at[0]} cy={o.at[1]} r="10" fill={active === i ? "#F47A2A" : "#141012"} />
-                    </g>
-                    <g className="hidden sm:block" transform={`translate(${o.at[0] + o.label[0]} ${o.at[1] + o.label[1]})`}>
-                      <g data-map-label>
-                      <rect width="200" height="68" rx="20" fill="#fff" fillOpacity="0.94" />
-                      <text x="20" y="30" fontSize="23" fontWeight="600" fill="#0b0b0c">
-                        {o.city}
-                      </text>
-                      <text x="20" y="52" fontSize="16" fill="#0b0b0c" fillOpacity="0.6">
-                        {o.region}
-                      </text>
-                      </g>
-                    </g>
-                  </g>
-                ))}
+              <rect x="-200" y="-200" width="1400" height={MAP_H + 400} fill="url(#o-grid)" />
+              <image data-o-land href="/offices-map.svg" x="0" y="0" width="1000" height={MAP_H} />
+              {/* Routes from both offices to our destinations */}
+              <g fill="none" stroke={ORANGE} strokeWidth="0.8" strokeLinecap="round">
+                {OFFICES.map((of) =>
+                  DESTINATIONS.map(([name, x, y]) => (
+                    <path key={of.city + name} data-o-route d={arc(of.at, project(x, y))} pathLength={1} strokeDasharray="1" opacity="0.75" />
+                  )),
+                )}
+                <path data-o-route d={arc(OFFICES[0].at, OFFICES[1].at)} pathLength={1} strokeDasharray="1" />
               </g>
+              {DESTINATIONS.map(([name, x, y]) => {
+                const [px, py] = project(x, y);
+                return <circle key={name} data-o-dest cx={px} cy={py} r="2.4" fill="#F8935A" />;
+              })}
+              {/* Office dots */}
+              {OFFICES.map((of) => {
+                const [px, py] = of.at;
+                return (
+                  <g key={of.city}>
+                    <circle data-o-pulse cx={px} cy={py} r="4" fill={ORANGE} opacity="0.45" />
+                    <circle data-o-dot cx={px} cy={py} r="4" fill={ORANGE} stroke="#FFFFFF" strokeWidth="1" />
+                  </g>
+                );
+              })}
             </svg>
-            {active !== null && (
-              <button
-                type="button"
-                onClick={() => setActive(null)}
-                className="absolute bottom-5 left-5 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white"
-              >
-                Show both offices
-              </button>
-            )}
+
+            {/* The location pill */}
+            <div className="absolute inset-x-4 bottom-5 flex items-center rounded-full border border-[#2E1212]/10 bg-white py-1.5 pl-5 pr-1.5 shadow-[0_18px_40px_-18px_rgba(46,18,18,0.45)] sm:inset-x-auto sm:left-[10%] sm:w-[22rem]">
+              <span data-o-city className="flex-1 truncate text-base text-[#B45A1E]">
+                {o.city}
+              </span>
+              <span className="flex gap-1">
+                {[-1, 1].map((dir) => (
+                  <button
+                    key={dir}
+                    type="button"
+                    onClick={() => pick(sel + dir)}
+                    aria-label={dir < 0 ? "Previous office" : "Next office"}
+                    className="grid h-8 w-8 place-items-center rounded-full text-[#2E1212]/60 transition-colors hover:bg-[#2E1212]/5 hover:text-[#2E1212]"
+                  >
+                    <svg viewBox="0 0 16 16" className={`h-3.5 w-3.5 ${dir < 0 ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M6 3l5 5-5 5" />
+                    </svg>
+                  </button>
+                ))}
+              </span>
+            </div>
           </div>
 
-          {/* Office cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:col-span-4 lg:grid-cols-1">
-            {offices.map((o, i) => (
-              <article
-                key={o.city}
-                data-office
-                className={`relative flex flex-col overflow-hidden rounded-[28px] p-7 transition-[translate] duration-500 ${o.card} ${active === i ? "-translate-y-1" : ""}`}
-              >
-                <div aria-hidden className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
-                <button type="button" aria-pressed={active === i} onClick={() => setActive(i)} className="group relative flex-1 text-left">
-                  <span className="flex items-center justify-between gap-3">
-                    <span className="h-8 w-12 rounded-md shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]" style={{ background: o.flag }} aria-hidden />
-                    <span className={`font-mono text-sm tabular-nums ${o.muted}`}>
-                      <LocalTime now={now} timeZone={o.timeZone} /> local
-                    </span>
-                  </span>
-                  <span className="mt-8 block text-4xl font-semibold tracking-tight">{o.city}</span>
-                  <span className={`mt-3 block text-[0.95rem] leading-relaxed ${o.muted}`}>{o.address}</span>
-                  <span className="mt-4 block text-sm font-semibold underline-offset-4 group-hover:underline">
-                    {active === i ? "Showing on map" : "View on map"}
-                  </span>
-                </button>
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.address)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="relative mt-5 inline-flex h-11 items-center justify-between rounded-full bg-white pl-5 pr-1.5 text-sm font-semibold text-ink"
-                >
-                  Get directions
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-brand text-white">
-                    <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <path d="M4 12l8-8M6 4h6v6" />
-                    </svg>
-                  </span>
-                </a>
-              </article>
-            ))}
+          {/* Presence */}
+          <div data-o-card className="relative overflow-hidden rounded-[22px] p-6 sm:p-7" style={{ background: "#FFC19A" }}>
+            <span aria-hidden className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/25 blur-2xl" />
+            <p className="relative text-6xl font-semibold tracking-tight" style={{ color: MAROON }}>
+              <span data-o-count>{OFFICES.length}</span>
+            </p>
+            <p className="relative mt-6 text-xl font-semibold tracking-tight" style={{ color: MAROON }}>
+              Offices across two continents
+            </p>
+            <p className="relative mt-2 text-sm leading-relaxed text-[#2E1212]/70">Face-to-face support in London and Dhaka, with advisors who know each destination.</p>
+          </div>
+
+          {/* The selected office */}
+          <div data-o-card className="relative min-h-[17rem] overflow-hidden rounded-[22px] border border-[#2E1212]/15 bg-white p-2">
+            <div className="relative h-full min-h-[16rem] overflow-hidden rounded-[16px]">
+              <Image key={o.photo} data-o-photo src={o.photo} alt={o.alt} fill sizes="(min-width:1024px) 22rem, 100vw" className="object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+              <div data-o-info className="absolute inset-x-4 bottom-4 text-white">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">{o.country}</p>
+                <p className="mt-1 text-2xl font-semibold tracking-tight">{o.city} office</p>
+                <p className="mt-1 text-sm text-white/80">{o.address}</p>
+                <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Local time <LocalTime timeZone={o.timeZone} />
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

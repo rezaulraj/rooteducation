@@ -5,10 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import SignupFlow from "./signup/SignupFlow";
 
 gsap.registerPlugin(useGSAP);
 
-type MenuKey = "services" | "countries";
+type MenuKey = "services" | "countries" | "resources";
 
 export const services = [
   {
@@ -88,8 +89,64 @@ export const countries = [
   },
 ] as const;
 
+/** The Resources menu: everything that helps students decide, beyond our services. */
+export const resources = [
+  {
+    label: "Counsellors",
+    desc: "Meet the experts who guide you",
+    href: "/counsellors",
+    icon: "counsellor",
+  },
+  {
+    label: "How We Work",
+    desc: "Our process, from first call to arrival",
+    href: "/how-we-work",
+    icon: "steps",
+  },
+  {
+    label: "Blog & Guides",
+    desc: "Country, visa and scholarship guides",
+    href: "/blog",
+    icon: "book",
+  },
+  {
+    label: "Student Stories",
+    desc: "Real journeys from our students",
+    href: "/success-stories",
+    icon: "star",
+  },
+  {
+    label: "Events & Webinars",
+    desc: "Free live sessions with experts",
+    href: "/events",
+    icon: "calendar",
+  },
+  {
+    label: "Test Preparation",
+    desc: "IELTS, PTE, SAT and Duolingo prep",
+    href: "/test-prep",
+    icon: "pen",
+  },
+  {
+    label: "Scholarships",
+    desc: "Funding options and how to apply",
+    href: "/services/scholarship-financial-aid",
+    icon: "scholarship",
+  },
+  {
+    label: "FAQs",
+    desc: "Answers to the questions we hear most",
+    href: "/faq",
+    icon: "question",
+  },
+] as const;
+
 type Destination = { name: string; code: string; href: string };
-const dest = (name: string, code: string, slug = name.toLowerCase().replace(/ /g, "-")): Destination => ({
+const dest = (
+  name: string,
+  code: string,
+  slug = name.toLowerCase().replace(/ /g, "-"),
+): Destination => ({
   name,
   code,
   href: `/study-abroad/${slug}`,
@@ -139,15 +196,21 @@ function Flag({ code, className = "" }: { code: string; className?: string }) {
 const leftLinks = [
   { label: "Services", menu: "services" as MenuKey },
   { label: "Study Abroad", menu: "countries" as MenuKey },
-  { label: "Universities & Programmes", short: "Universities", href: "/universities" },
+  {
+    label: "Universities & Programmes",
+    short: "Universities",
+    href: "/universities",
+  },
 ];
 
-const rightLinks = [
-  { label: "How We Work", href: "/how-we-work" },
-  { label: "Contact Us", href: "/contact" },
-];
+const rightLinks = [{ label: "Contact Us", href: "/contact" }];
 
-const menuOrder: MenuKey[] = ["services", "countries"];
+const menuOrder: MenuKey[] = ["services", "countries", "resources"];
+const menuLabels: Record<MenuKey, string> = {
+  services: "Services",
+  countries: "Study Abroad",
+  resources: "Resources",
+};
 
 const iconPaths: Record<string, ReactNode> = {
   compass: (
@@ -181,10 +244,59 @@ const iconPaths: Record<string, ReactNode> = {
       <path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5M22 9v6" />
     </>
   ),
-  plane: <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />,
+  counsellor: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4.5 21c1.2-4 4-6 7.5-6s6.3 2 7.5 6" />
+      <path d="M8.5 7.5c1.2.6 4.8.6 7 0" />
+    </>
+  ),
+  steps: (
+    <>
+      <circle cx="5" cy="6" r="2" />
+      <circle cx="19" cy="18" r="2" />
+      <path d="M7 6h7a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h7" />
+    </>
+  ),
+  book: (
+    <>
+      <path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z" />
+      <path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H13v16h5.5c.8 0 1.5-.7 1.5-1.5z" />
+    </>
+  ),
+  star: (
+    <path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />
+  ),
+  calendar: (
+    <>
+      <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+      <path d="M3.5 10h17M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2" />
+    </>
+  ),
+  pen: (
+    <>
+      <path d="M15.5 4.5 19.5 8.5 9 19H5v-4z" />
+      <path d="m13 7 4 4" />
+    </>
+  ),
+  question: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01" />
+    </>
+  ),
+  plane: (
+    <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
+  ),
 };
 
-export function Icon({ name, className = "h-5 w-5" }: { name: string; className?: string }) {
+export function Icon({
+  name,
+  className = "h-5 w-5",
+}: {
+  name: string;
+  className?: string;
+}) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -257,8 +369,16 @@ export default function Header() {
   const highlightRef = useRef<HTMLSpanElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const caretRef = useRef<HTMLSpanElement>(null);
-  const contentRefs = useRef<Record<MenuKey, HTMLDivElement | null>>({ services: null, countries: null });
-  const triggerRefs = useRef<Record<MenuKey, HTMLButtonElement | null>>({ services: null, countries: null });
+  const contentRefs = useRef<Record<MenuKey, HTMLDivElement | null>>({
+    services: null,
+    countries: null,
+    resources: null,
+  });
+  const triggerRefs = useRef<Record<MenuKey, HTMLButtonElement | null>>({
+    services: null,
+    countries: null,
+    resources: null,
+  });
   const mobileRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevMenu = useRef<MenuKey | null>(null);
@@ -267,6 +387,14 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileSection, setMobileSection] = useState<MenuKey | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [signupOpen, setSignupOpen] = useState(false);
+
+  // Other parts of the site can open sign-up with window.dispatchEvent(new Event("signup:open")).
+  useEffect(() => {
+    const open = () => setSignupOpen(true);
+    window.addEventListener("signup:open", open);
+    return () => window.removeEventListener("signup:open", open);
+  }, []);
 
   // Intro: the bar unfolds from the logo outwards, then the links rise in.
   useGSAP(
@@ -276,9 +404,27 @@ export default function Header() {
         gsap
           .timeline({ defaults: { ease: "expo.out" } })
           .from(barRef.current, { yPercent: -100, duration: 1.1, delay: 0.15 })
-          .from("[data-corner]", { scale: 0, autoAlpha: 0, duration: 0.6, ease: "back.out(2)", clearProps: "opacity,visibility,transform" }, "<0.55")
-          .from("[data-logo]", { y: -30, scale: 0.7, rotate: -8, autoAlpha: 0, duration: 1 }, "<-0.2")
-          .from("[data-nav-item]", { y: 14, autoAlpha: 0, stagger: 0.05, duration: 0.7 }, "<0.35");
+          .from(
+            "[data-corner]",
+            {
+              scale: 0,
+              autoAlpha: 0,
+              duration: 0.6,
+              ease: "back.out(2)",
+              clearProps: "opacity,visibility,transform",
+            },
+            "<0.55",
+          )
+          .from(
+            "[data-logo]",
+            { y: -30, scale: 0.7, rotate: -8, autoAlpha: 0, duration: 1 },
+            "<-0.2",
+          )
+          .from(
+            "[data-nav-item]",
+            { y: 14, autoAlpha: 0, stagger: 0.05, duration: 0.7 },
+            "<0.35",
+          );
       });
     },
     { scope: headerRef },
@@ -328,37 +474,79 @@ export default function Header() {
     const trigger = triggerRefs.current[activeMenu]!;
     const w = content.offsetWidth;
     const h = content.offsetHeight;
+    const px =
+      activeMenu === "resources" ? panel.parentElement!.offsetWidth - w : 0;
     const caretX =
       trigger.getBoundingClientRect().left +
       trigger.offsetWidth / 2 -
       panel.parentElement!.getBoundingClientRect().left;
 
     if (!prev) {
-      gsap.set(panel, { width: w, height: h });
+      gsap.set(panel, { width: w, height: h, x: px });
       gsap.set(caretRef.current, { x: caretX, rotation: 45 });
       menuOrder.forEach((k) =>
-        gsap.set(contentRefs.current[k], { autoAlpha: k === activeMenu ? 1 : 0, x: 0 }),
+        gsap.set(contentRefs.current[k], {
+          autoAlpha: k === activeMenu ? 1 : 0,
+          x: 0,
+        }),
       );
       gsap.fromTo(
         panel,
         { autoAlpha: 0, y: -12, rotateX: -12 },
-        { autoAlpha: 1, y: 0, rotateX: 0, duration: 0.55, ease: "expo.out", overwrite: "auto" },
+        {
+          autoAlpha: 1,
+          y: 0,
+          rotateX: 0,
+          duration: 0.55,
+          ease: "expo.out",
+          overwrite: "auto",
+        },
       );
       gsap.fromTo(
         content.querySelectorAll("[data-menu-item]"),
         { y: 14, autoAlpha: 0 },
-        { y: 0, autoAlpha: 1, stagger: 0.035, duration: 0.5, ease: "power3.out", delay: 0.05 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          stagger: 0.035,
+          duration: 0.5,
+          ease: "power3.out",
+          delay: 0.05,
+        },
       );
       return;
     }
 
     if (prev !== activeMenu) {
-      const dir = menuOrder.indexOf(activeMenu) > menuOrder.indexOf(prev) ? 1 : -1;
-      gsap.to(panel, { width: w, height: h, autoAlpha: 1, y: 0, rotateX: 0, duration: 0.5, ease: "expo.out", overwrite: "auto" });
+      const dir =
+        menuOrder.indexOf(activeMenu) > menuOrder.indexOf(prev) ? 1 : -1;
+      gsap.to(panel, {
+        width: w,
+        height: h,
+        x: px,
+        autoAlpha: 1,
+        y: 0,
+        rotateX: 0,
+        duration: 0.5,
+        ease: "expo.out",
+        overwrite: "auto",
+      });
       gsap.to(caretRef.current, { x: caretX, duration: 0.5, ease: "expo.out" });
-      gsap.to(contentRefs.current[prev], { autoAlpha: 0, x: -60 * dir, duration: 0.3, ease: "power2.in" });
-      gsap.fromTo(content, { autoAlpha: 0, x: 60 * dir }, { autoAlpha: 1, x: 0, duration: 0.5, ease: "expo.out" });
-      gsap.set(content.querySelectorAll("[data-menu-item]"), { y: 0, autoAlpha: 1 });
+      gsap.to(contentRefs.current[prev], {
+        autoAlpha: 0,
+        x: -60 * dir,
+        duration: 0.3,
+        ease: "power2.in",
+      });
+      gsap.fromTo(
+        content,
+        { autoAlpha: 0, x: 60 * dir },
+        { autoAlpha: 1, x: 0, duration: 0.5, ease: "expo.out" },
+      );
+      gsap.set(content.querySelectorAll("[data-menu-item]"), {
+        y: 0,
+        autoAlpha: 1,
+      });
     }
   }, [activeMenu]);
 
@@ -367,16 +555,34 @@ export default function Header() {
     const sheet = mobileRef.current;
     if (!sheet) return;
     document.body.style.overflow = mobileOpen ? "hidden" : "";
-    window.dispatchEvent(new Event(mobileOpen ? "scroll:lock" : "scroll:unlock"));
+    window.dispatchEvent(
+      new Event(mobileOpen ? "scroll:lock" : "scroll:unlock"),
+    );
     if (mobileOpen) {
-      gsap.fromTo(sheet, { height: 0, autoAlpha: 0 }, { height: "auto", autoAlpha: 1, duration: 0.6, ease: "expo.out" });
+      gsap.fromTo(
+        sheet,
+        { height: 0, autoAlpha: 0 },
+        { height: "auto", autoAlpha: 1, duration: 0.6, ease: "expo.out" },
+      );
       gsap.fromTo(
         sheet.querySelectorAll("[data-mobile-item]"),
         { y: 24, autoAlpha: 0 },
-        { y: 0, autoAlpha: 1, stagger: 0.05, duration: 0.6, ease: "power3.out", delay: 0.1 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          stagger: 0.05,
+          duration: 0.6,
+          ease: "power3.out",
+          delay: 0.1,
+        },
       );
     } else {
-      gsap.to(sheet, { height: 0, autoAlpha: 0, duration: 0.35, ease: "power3.in" });
+      gsap.to(sheet, {
+        height: 0,
+        autoAlpha: 0,
+        duration: 0.35,
+        ease: "power3.in",
+      });
     }
   }, [mobileOpen]);
 
@@ -416,401 +622,641 @@ export default function Header() {
     const r = el.getBoundingClientRect();
     const hl = highlightRef.current;
     const visible = Number(gsap.getProperty(hl, "opacity")) > 0.05;
-    const target = { x: r.left - bar.left, y: r.top - bar.top, width: r.width, height: r.height };
+    const target = {
+      x: r.left - bar.left,
+      y: r.top - bar.top,
+      width: r.width,
+      height: r.height,
+    };
     if (!visible) gsap.set(hl, { ...target, scale: 0.85 });
-    gsap.to(hl, { ...target, scale: 1, opacity: 1, duration: 0.45, ease: "expo.out", overwrite: "auto" });
+    gsap.to(hl, {
+      ...target,
+      scale: 1,
+      opacity: 1,
+      duration: 0.45,
+      ease: "expo.out",
+      overwrite: "auto",
+    });
   };
   const hideHighlight = () => {
-    gsap.to(highlightRef.current, { opacity: 0, scale: 0.9, duration: 0.3, ease: "power2.out", overwrite: "auto" });
+    gsap.to(highlightRef.current, {
+      opacity: 0,
+      scale: 0.9,
+      duration: 0.3,
+      ease: "power2.out",
+      overwrite: "auto",
+    });
   };
 
   const navLinkClass =
     "relative z-10 inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-xl px-2 text-[0.84rem] xl:px-3.5 xl:text-[0.9rem] font-medium text-ink/80 transition-colors hover:text-ink";
 
   return (
-    <header ref={headerRef} className="fixed inset-x-0 top-0 z-50 px-14 sm:px-16 lg:px-20">
-      <div className="relative mx-auto max-w-6xl [perspective:1400px]">
-        <div
-          ref={barRef}
-          className={`relative flex items-center justify-between bg-white px-3 transition-all duration-500 ease-[cubic-bezier(.7,0,.2,1)] lg:grid lg:grid-cols-[1fr_auto_1fr] ${
-            scrolled
-              ? "mt-3 h-[62px] rounded-[20px] shadow-[0_14px_40px_-12px_rgba(11,11,12,0.3)]"
-              : "mt-0 h-[80px] rounded-b-[24px] rounded-t-none pt-3"
-          }`}
-        >
-          {/* Inverted corners: carve the hero's top edge around the tab */}
-          <span
-            data-corner
-            aria-hidden
-            style={{ background: "radial-gradient(circle at 0 100%, transparent 22px, #fff 22.5px)", transformOrigin: "100% 0" }}
-            className={`pointer-events-none absolute right-full top-3 h-[22px] w-[22px] transition-opacity duration-300 ${scrolled ? "opacity-0" : ""}`}
-          />
-          <span
-            data-corner
-            aria-hidden
-            style={{ background: "radial-gradient(circle at 100% 100%, transparent 22px, #fff 22.5px)", transformOrigin: "0 0" }}
-            className={`pointer-events-none absolute left-full top-3 h-[22px] w-[22px] transition-opacity duration-300 ${scrolled ? "opacity-0" : ""}`}
-          />
-          <span
-            ref={highlightRef}
-            aria-hidden
-            className="pointer-events-none absolute left-0 top-0 rounded-xl bg-brand/10 opacity-0"
-          />
+    <>
+      <header
+        ref={headerRef}
+        className="fixed inset-x-0 top-0 z-50 px-14 sm:px-16 lg:px-20"
+      >
+        <div className="relative mx-auto max-w-6xl [perspective:1400px]">
+          <div
+            ref={barRef}
+            className={`relative flex items-center justify-between bg-white px-3 transition-all duration-500 ease-[cubic-bezier(.7,0,.2,1)] lg:grid lg:grid-cols-[1fr_auto_1fr] ${
+              scrolled
+                ? "mt-3 h-[62px] rounded-[20px] shadow-[0_14px_40px_-12px_rgba(11,11,12,0.3)]"
+                : "mt-0 h-[80px] rounded-b-[24px] rounded-t-none pt-3"
+            }`}
+          >
+            {/* Inverted corners: carve the hero's top edge around the tab */}
+            <span
+              data-corner
+              aria-hidden
+              style={{
+                background:
+                  "radial-gradient(circle at 0 100%, transparent 22px, #fff 22.5px)",
+                transformOrigin: "100% 0",
+              }}
+              className={`pointer-events-none absolute right-full top-3 h-[22px] w-[22px] transition-opacity duration-300 ${scrolled ? "opacity-0" : ""}`}
+            />
+            <span
+              data-corner
+              aria-hidden
+              style={{
+                background:
+                  "radial-gradient(circle at 100% 100%, transparent 22px, #fff 22.5px)",
+                transformOrigin: "0 0",
+              }}
+              className={`pointer-events-none absolute left-full top-3 h-[22px] w-[22px] transition-opacity duration-300 ${scrolled ? "opacity-0" : ""}`}
+            />
+            <span
+              ref={highlightRef}
+              aria-hidden
+              className="pointer-events-none absolute left-0 top-0 rounded-xl bg-brand/10 opacity-0"
+            />
 
-          {/* Left nav */}
-          <nav aria-label="Primary" className="hidden lg:block" onMouseLeave={hideHighlight}>
-            <ul className="flex items-center gap-0.5">
-              {leftLinks.map((item) =>
-                item.menu ? (
-                  <li key={item.label} data-nav-item>
-                    <button
-                      ref={(el) => {
-                        triggerRefs.current[item.menu!] = el;
-                      }}
-                      type="button"
-                      aria-expanded={activeMenu === item.menu}
-                      aria-controls="mega-panel"
-                      onMouseEnter={(e) => {
-                        moveHighlight(e.currentTarget);
-                        openMenu(item.menu!);
-                      }}
-                      onMouseLeave={scheduleClose}
-                      onFocus={(e) => moveHighlight(e.currentTarget)}
-                      onClick={() => setActiveMenu((m) => (m === item.menu ? null : item.menu!))}
-                      className={`${navLinkClass} ${activeMenu === item.menu ? "text-ink" : ""}`}
-                    >
-                      {item.label}
-                      <Chevron open={activeMenu === item.menu} />
-                    </button>
-                  </li>
-                ) : (
-                  <li key={item.label} data-nav-item>
-                    <Link
-                      href={item.href!}
-                      className={navLinkClass}
-                      onMouseEnter={(e) => {
-                        moveHighlight(e.currentTarget);
-                        scheduleClose();
-                      }}
-                      onFocus={(e) => moveHighlight(e.currentTarget)}
-                    >
-                      {"short" in item && item.short ? (
-                        <>
-                          <span className="xl:hidden">{item.short}</span>
-                          <span className="hidden xl:inline">{item.label}</span>
-                        </>
-                      ) : (
-                        item.label
-                      )}
-                    </Link>
-                  </li>
-                ),
-              )}
-            </ul>
-          </nav>
+            {/* Left nav */}
+            <nav
+              aria-label="Primary"
+              className="hidden lg:block"
+              onMouseLeave={hideHighlight}
+            >
+              <ul className="flex items-center gap-0.5">
+                {leftLinks.map((item) =>
+                  item.menu ? (
+                    <li key={item.label} data-nav-item>
+                      <button
+                        ref={(el) => {
+                          triggerRefs.current[item.menu!] = el;
+                        }}
+                        type="button"
+                        aria-expanded={activeMenu === item.menu}
+                        aria-controls="mega-panel"
+                        onMouseEnter={(e) => {
+                          moveHighlight(e.currentTarget);
+                          openMenu(item.menu!);
+                        }}
+                        onMouseLeave={scheduleClose}
+                        onFocus={(e) => moveHighlight(e.currentTarget)}
+                        onClick={() =>
+                          setActiveMenu((m) =>
+                            m === item.menu ? null : item.menu!,
+                          )
+                        }
+                        className={`${navLinkClass} ${activeMenu === item.menu ? "text-ink" : ""}`}
+                      >
+                        {item.label}
+                        <Chevron open={activeMenu === item.menu} />
+                      </button>
+                    </li>
+                  ) : (
+                    <li key={item.label} data-nav-item>
+                      <Link
+                        href={item.href!}
+                        className={navLinkClass}
+                        onMouseEnter={(e) => {
+                          moveHighlight(e.currentTarget);
+                          scheduleClose();
+                        }}
+                        onFocus={(e) => moveHighlight(e.currentTarget)}
+                      >
+                        {"short" in item && item.short ? (
+                          <>
+                            <span className="xl:hidden">{item.short}</span>
+                            <span className="hidden xl:inline">
+                              {item.label}
+                            </span>
+                          </>
+                        ) : (
+                          item.label
+                        )}
+                      </Link>
+                    </li>
+                  ),
+                )}
+              </ul>
+            </nav>
 
-          {/* Logo */}
-          <Link href="/" aria-label="Root Education home" className="relative z-10 flex items-center justify-center">
-            <span data-logo className="block">
-              <Image
-                src="/logo.svg"
-                alt="Root Education"
-                width={110}
-                height={44}
-                preload
-                unoptimized
-                className={`w-auto transition-[height] duration-500 ${scrolled ? "h-9" : "h-11"}`}
+            {/* Logo */}
+            <Link
+              href="/"
+              aria-label="Root Education home"
+              className="relative z-10 flex items-center justify-center"
+            >
+              <span data-logo className="block">
+                <Image
+                  src="/logo.svg"
+                  alt="Root Education"
+                  width={110}
+                  height={44}
+                  preload
+                  unoptimized
+                  className={`w-auto transition-[height] duration-500 ${scrolled ? "h-9" : "h-11"}`}
+                />
+              </span>
+            </Link>
+
+            {/* Right nav + actions */}
+            <div
+              className="hidden items-center justify-end gap-1 lg:flex"
+              onMouseLeave={hideHighlight}
+            >
+              <button
+                ref={(el) => {
+                  triggerRefs.current.resources = el;
+                }}
+                type="button"
+                data-nav-item
+                aria-expanded={activeMenu === "resources"}
+                aria-controls="mega-panel"
+                onMouseEnter={(e) => {
+                  moveHighlight(e.currentTarget);
+                  openMenu("resources");
+                }}
+                onMouseLeave={scheduleClose}
+                onFocus={(e) => moveHighlight(e.currentTarget)}
+                onClick={() =>
+                  setActiveMenu((m) => (m === "resources" ? null : "resources"))
+                }
+                className={`${navLinkClass} ${activeMenu === "resources" ? "text-ink" : ""}`}
+              >
+                Resources
+                <Chevron open={activeMenu === "resources"} />
+              </button>
+              {rightLinks.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  data-nav-item
+                  className={navLinkClass}
+                  onMouseEnter={(e) => {
+                    moveHighlight(e.currentTarget);
+                    scheduleClose();
+                  }}
+                  onFocus={(e) => moveHighlight(e.currentTarget)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <span
+                data-nav-item
+                className="mx-1.5 h-5 w-px bg-ink/10"
+                aria-hidden
               />
-            </span>
-          </Link>
-
-          {/* Right nav + actions */}
-          <div className="hidden items-center justify-end gap-1 lg:flex" onMouseLeave={hideHighlight}>
-            {rightLinks.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
+              <button
+                type="button"
+                onClick={() => setSignupOpen(true)}
                 data-nav-item
                 className={navLinkClass}
                 onMouseEnter={(e) => moveHighlight(e.currentTarget)}
                 onFocus={(e) => moveHighlight(e.currentTarget)}
               >
-                {item.label}
-              </Link>
-            ))}
-            <span data-nav-item className="mx-1.5 h-5 w-px bg-ink/10" aria-hidden />
-            <Link
-              href="/login"
-              data-nav-item
-              className={navLinkClass}
-              onMouseEnter={(e) => moveHighlight(e.currentTarget)}
-              onFocus={(e) => moveHighlight(e.currentTarget)}
-            >
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
-                <circle cx="12" cy="8" r="4" />
-                <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
-              </svg>
-              Login
-            </Link>
-            <span data-nav-item className="ml-1">
-              <ConsultationButton />
-            </span>
-          </div>
-
-          {/* Mobile toggle */}
-          <button
-            type="button"
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-menu"
-            onClick={() => setMobileOpen((o) => !o)}
-            className="relative z-10 grid h-11 w-11 place-items-center rounded-xl bg-ink text-white lg:hidden"
-          >
-            <span className="relative block h-3.5 w-5">
-              <span
-                className={`absolute left-0 h-0.5 w-5 rounded-full bg-current transition-all duration-500 ease-[cubic-bezier(.7,0,.2,1)] ${
-                  mobileOpen ? "top-1.5 rotate-45" : "top-0"
-                }`}
-              />
-              <span
-                className={`absolute left-0 h-0.5 rounded-full bg-brand transition-all duration-500 ease-[cubic-bezier(.7,0,.2,1)] ${
-                  mobileOpen ? "top-1.5 w-5 -rotate-45 bg-current" : "top-3 w-3"
-                }`}
-              />
-            </span>
-          </button>
-        </div>
-
-        {/* Desktop mega panel */}
-        <div
-          ref={panelRef}
-          id="mega-panel"
-          onMouseEnter={cancelClose}
-          onMouseLeave={scheduleClose}
-          style={{ visibility: "hidden", opacity: 0, transformOrigin: "top center" }}
-          className="absolute left-0 top-[calc(100%+14px)] hidden overflow-hidden rounded-[22px] border border-ink/5 bg-white shadow-[0_30px_80px_-20px_rgba(11,11,12,0.35)] lg:block"
-        >
-          <div
-            ref={(el) => {
-              contentRefs.current.services = el;
-            }}
-            className="absolute left-0 top-0 w-[680px] p-3"
-          >
-            <div className="grid grid-cols-2 gap-1">
-              {services.map((s) => (
-                <Link
-                  key={s.label}
-                  href={s.href}
-                  data-menu-item
-                  onClick={() => setActiveMenu(null)}
-                  className="group flex items-start gap-3.5 rounded-2xl p-3.5 transition-colors hover:bg-brand/[0.07]"
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  aria-hidden
                 >
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ink/[0.04] text-ink transition-all duration-300 group-hover:-rotate-6 group-hover:bg-brand group-hover:text-white">
-                    <Icon name={s.icon} />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="flex items-center gap-1.5 text-[0.92rem] font-semibold text-ink">
-                      {s.label}
-                      <Arrow className="h-3.5 w-3.5 -translate-x-1 text-brand opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
-                    </span>
-                    <span className="mt-0.5 block text-[0.8rem] leading-snug text-ink/55">{s.desc}</span>
-                  </span>
-                </Link>
-              ))}
-            </div>
-            <div
-              data-menu-item
-              className="mt-2 flex items-center justify-between rounded-2xl bg-ink px-5 py-4 text-white"
-            >
-              <span className="text-sm">
-                <span className="font-semibold">Not sure where to start?</span>{" "}
-                <span className="text-white/60">See our process from first call to arrival.</span>
+                  <circle cx="10" cy="8" r="4" />
+                  <path d="M2 21c1.5-4 4.5-6 8-6 2 0 3.8.6 5.2 1.8M19 14v6M16 17h6" />
+                </svg>
+                Sign up
+              </button>
+              <span data-nav-item className="ml-1">
+                <ConsultationButton />
               </span>
-              <Link
-                href="/how-we-work"
-                onClick={() => setActiveMenu(null)}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
-              >
-                How we work <Arrow className="h-3.5 w-3.5" />
-              </Link>
             </div>
+
+            {/* Mobile toggle */}
+            <button
+              type="button"
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-menu"
+              onClick={() => setMobileOpen((o) => !o)}
+              className="relative z-10 grid h-11 w-11 place-items-center rounded-xl bg-ink text-white lg:hidden"
+            >
+              <span className="relative block h-3.5 w-5">
+                <span
+                  className={`absolute left-0 h-0.5 w-5 rounded-full bg-current transition-all duration-500 ease-[cubic-bezier(.7,0,.2,1)] ${
+                    mobileOpen ? "top-1.5 rotate-45" : "top-0"
+                  }`}
+                />
+                <span
+                  className={`absolute left-0 h-0.5 rounded-full bg-brand transition-all duration-500 ease-[cubic-bezier(.7,0,.2,1)] ${
+                    mobileOpen
+                      ? "top-1.5 w-5 -rotate-45 bg-current"
+                      : "top-3 w-3"
+                  }`}
+                />
+              </span>
+            </button>
           </div>
 
+          {/* Desktop mega panel */}
           <div
-            ref={(el) => {
-              contentRefs.current.countries = el;
+            ref={panelRef}
+            id="mega-panel"
+            onMouseEnter={cancelClose}
+            onMouseLeave={scheduleClose}
+            style={{
+              visibility: "hidden",
+              opacity: 0,
+              transformOrigin: "top center",
             }}
-            className="absolute left-0 top-0 w-[760px] p-3"
+            className="absolute left-0 top-[calc(100%+14px)] hidden overflow-hidden rounded-[22px] border border-ink/5 bg-white shadow-[0_30px_80px_-20px_rgba(11,11,12,0.35)] lg:block"
           >
-            <div className="flex gap-3">
-              {/* Popular destinations */}
-              <div className="w-[230px] shrink-0 rounded-2xl bg-ink/[0.025] p-2">
-                <p data-menu-item className="px-3 pb-2 pt-2 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-ink/45">
-                  Popular destinations
-                </p>
-                {destinations.popular.map((c) => (
+            <div
+              ref={(el) => {
+                contentRefs.current.services = el;
+              }}
+              className="absolute left-0 top-0 w-[680px] p-3"
+            >
+              <div className="grid grid-cols-2 gap-1">
+                {services.map((s) => (
                   <Link
-                    key={c.name}
-                    href={c.href}
+                    key={s.label}
+                    href={s.href}
                     data-menu-item
                     onClick={() => setActiveMenu(null)}
-                    className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-white hover:shadow-[0_6px_20px_-10px_rgba(11,11,12,0.25)]"
+                    className="group flex items-start gap-3.5 rounded-2xl p-3.5 transition-colors hover:bg-brand/[0.07]"
                   >
-                    <Flag code={c.code} className="h-[21px] w-7 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" />
-                    <span className="text-[0.92rem] text-ink/75 transition-colors group-hover:font-semibold group-hover:text-ink">{c.name}</span>
-                    <Arrow className="ml-auto h-3.5 w-3.5 -translate-x-1 text-brand opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ink/[0.04] text-ink transition-all duration-300 group-hover:-rotate-6 group-hover:bg-brand group-hover:text-white">
+                      <Icon name={s.icon} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="flex items-center gap-1.5 text-[0.92rem] font-semibold text-ink">
+                        {s.label}
+                        <Arrow className="h-3.5 w-3.5 -translate-x-1 text-brand opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+                      </span>
+                      <span className="mt-0.5 block text-[0.8rem] leading-snug text-ink/55">
+                        {s.desc}
+                      </span>
+                    </span>
                   </Link>
                 ))}
               </div>
+              <div
+                data-menu-item
+                className="mt-2 flex items-center justify-between rounded-2xl bg-ink px-5 py-4 text-white"
+              >
+                <span className="text-sm">
+                  <span className="font-semibold">
+                    Not sure where to start?
+                  </span>{" "}
+                  <span className="text-white/60">
+                    See our process from first call to arrival.
+                  </span>
+                </span>
+                <Link
+                  href="/how-we-work"
+                  onClick={() => setActiveMenu(null)}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
+                >
+                  How we work <Arrow className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </div>
 
-              {/* Popular European destinations */}
-              <div className="min-w-0 flex-1 py-1">
-                <p data-menu-item className="px-1 pb-3 pt-1 text-lg font-semibold tracking-tight text-ink">
-                  Popular European destinations
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {destinations.europe.map((c) => (
+            <div
+              ref={(el) => {
+                contentRefs.current.countries = el;
+              }}
+              className="absolute left-0 top-0 w-[760px] p-3"
+            >
+              <div className="flex gap-3">
+                {/* Popular destinations */}
+                <div className="w-[230px] shrink-0 rounded-2xl bg-ink/[0.025] p-2">
+                  <p
+                    data-menu-item
+                    className="px-3 pb-2 pt-2 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-ink/45"
+                  >
+                    Popular destinations
+                  </p>
+                  {destinations.popular.map((c) => (
                     <Link
                       key={c.name}
                       href={c.href}
                       data-menu-item
                       onClick={() => setActiveMenu(null)}
-                      className="group flex items-center gap-3 rounded-xl border border-ink/[0.07] bg-white px-3.5 py-2.5 shadow-[0_2px_8px_-4px_rgba(11,11,12,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-[0_12px_24px_-12px_rgba(244,122,42,0.45)]"
+                      className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-white hover:shadow-[0_6px_20px_-10px_rgba(11,11,12,0.25)]"
                     >
-                      <Flag code={c.code} className="h-[18px] w-6 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" />
-                      <span className="text-[0.9rem] font-medium text-ink">{c.name}</span>
+                      <Flag
+                        code={c.code}
+                        className="h-[21px] w-7 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110"
+                      />
+                      <span className="text-[0.92rem] text-ink/75 transition-colors group-hover:font-semibold group-hover:text-ink">
+                        {c.name}
+                      </span>
                       <Arrow className="ml-auto h-3.5 w-3.5 -translate-x-1 text-brand opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
                     </Link>
                   ))}
                 </div>
+
+                {/* Popular European destinations */}
+                <div className="min-w-0 flex-1 py-1">
+                  <p
+                    data-menu-item
+                    className="px-1 pb-3 pt-1 text-lg font-semibold tracking-tight text-ink"
+                  >
+                    Popular European destinations
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {destinations.europe.map((c) => (
+                      <Link
+                        key={c.name}
+                        href={c.href}
+                        data-menu-item
+                        onClick={() => setActiveMenu(null)}
+                        className="group flex items-center gap-3 rounded-xl border border-ink/[0.07] bg-white px-3.5 py-2.5 shadow-[0_2px_8px_-4px_rgba(11,11,12,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-[0_12px_24px_-12px_rgba(244,122,42,0.45)]"
+                      >
+                        <Flag
+                          code={c.code}
+                          className="h-[18px] w-6 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110"
+                        />
+                        <span className="text-[0.9rem] font-medium text-ink">
+                          {c.name}
+                        </span>
+                        <Arrow className="ml-auto h-3.5 w-3.5 -translate-x-1 text-brand opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div
+                data-menu-item
+                className="mt-3 flex items-center justify-between rounded-2xl bg-ink px-5 py-4 text-white"
+              >
+                <span className="text-sm">
+                  <span className="font-semibold">
+                    {destinations.popular.length + destinations.europe.length}{" "}
+                    destinations.
+                  </span>{" "}
+                  <span className="text-white/60">
+                    Not sure which fits you best?
+                  </span>
+                </span>
+                <Link
+                  href="/consultation"
+                  onClick={() => setActiveMenu(null)}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
+                >
+                  Ask an advisor <Arrow className="h-3.5 w-3.5" />
+                </Link>
               </div>
             </div>
-            <div data-menu-item className="mt-3 flex items-center justify-between rounded-2xl bg-ink px-5 py-4 text-white">
-              <span className="text-sm">
-                <span className="font-semibold">{destinations.popular.length + destinations.europe.length} destinations.</span>{" "}
-                <span className="text-white/60">Not sure which fits you best?</span>
-              </span>
-              <Link
-                href="/consultation"
-                onClick={() => setActiveMenu(null)}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
+            <div
+              ref={(el) => {
+                contentRefs.current.resources = el;
+              }}
+              className="absolute left-0 top-0 w-[760px] p-3"
+            >
+              <div className="flex gap-3">
+                <div className="grid min-w-0 flex-1 grid-cols-2 gap-1">
+                  {resources.map((r) => (
+                    <Link
+                      key={r.label}
+                      href={r.href}
+                      data-menu-item
+                      onClick={() => setActiveMenu(null)}
+                      className="group flex items-start gap-3 rounded-2xl p-3 transition-colors hover:bg-brand/[0.07]"
+                    >
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink/[0.04] text-ink transition-all duration-300 group-hover:-rotate-6 group-hover:bg-brand group-hover:text-white">
+                        <Icon name={r.icon} className="h-[18px] w-[18px]" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="flex items-center gap-1.5 text-[0.9rem] font-semibold text-ink">
+                          {r.label}
+                          <Arrow className="h-3.5 w-3.5 -translate-x-1 text-brand opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+                        </span>
+                        <span className="mt-0.5 block text-[0.78rem] leading-snug text-ink/55">
+                          {r.desc}
+                        </span>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Featured: talk to a counsellor */}
+                <Link
+                  href="/consultation"
+                  data-menu-item
+                  onClick={() => setActiveMenu(null)}
+                  className="group relative flex w-[230px] shrink-0 flex-col overflow-hidden rounded-2xl bg-ink p-4 text-white"
+                >
+                  <span className="relative block aspect-[4/3] overflow-hidden rounded-xl">
+                    <Image
+                      src="/consult.png"
+                      alt=""
+                      fill
+                      sizes="200px"
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    />
+                  </span>
+                  <span className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-brand/15 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-brand">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
+                    Free 1:1 session
+                  </span>
+                  <span className="mt-2.5 text-[1.05rem] font-semibold leading-snug">
+                    Talk to a certified counsellor
+                  </span>
+                  <span className="mt-1 text-[0.8rem] leading-snug text-white/60">
+                    Your shortlist, budget and visa plan in one call.
+                  </span>
+                  <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold text-brand">
+                    Book a free call
+                    <Arrow className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+                  </span>
+                </Link>
+              </div>
+              <div
+                data-menu-item
+                className="mt-3 flex items-center justify-between rounded-2xl bg-brand/[0.08] px-5 py-3.5"
               >
-                Ask an advisor <Arrow className="h-3.5 w-3.5" />
-              </Link>
+                <span className="text-sm text-ink">
+                  <span className="font-semibold">
+                    Are you an agency or counsellor?
+                  </span>{" "}
+                  <span className="text-ink/60">
+                    Partner with us across 20 countries.
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveMenu(null);
+                    setSignupOpen(true);
+                  }}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#C95A14] hover:underline"
+                >
+                  Become a partner <Arrow className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-        <span
-          ref={caretRef}
-          aria-hidden
-          className={`pointer-events-none absolute left-0 top-[calc(100%+8px)] hidden h-3 w-3 rounded-[3px] bg-white transition-opacity duration-200 lg:block ${
-            activeMenu ? "opacity-100" : "opacity-0"
-          }`}
-          style={{ marginLeft: -6 }}
-        />
+          <span
+            ref={caretRef}
+            aria-hidden
+            className={`pointer-events-none absolute left-0 top-[calc(100%+8px)] hidden h-3 w-3 rounded-[3px] bg-white transition-opacity duration-200 lg:block ${
+              activeMenu ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ marginLeft: -6 }}
+          />
 
-        {/* Mobile sheet */}
-        <div
-          ref={mobileRef}
-          id="mobile-menu"
-          style={{ height: 0, visibility: "hidden", opacity: 0 }}
-          className="mt-2 overflow-hidden rounded-[22px] bg-white shadow-[0_30px_80px_-20px_rgba(11,11,12,0.35)] lg:hidden"
-        >
-          <div data-lenis-prevent className="max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain p-3">
-            {menuOrder.map((key) => {
-              const open = mobileSection === key;
-              return (
-                <div key={key} data-mobile-item className="border-b border-ink/5">
-                  <button
-                    type="button"
-                    aria-expanded={open}
-                    onClick={() => setMobileSection(open ? null : key)}
-                    className="flex w-full items-center justify-between px-3 py-4 text-left text-2xl font-semibold tracking-tight text-ink"
+          {/* Mobile sheet */}
+          <div
+            ref={mobileRef}
+            id="mobile-menu"
+            style={{ height: 0, visibility: "hidden", opacity: 0 }}
+            className="mt-2 overflow-hidden rounded-[22px] bg-white shadow-[0_30px_80px_-20px_rgba(11,11,12,0.35)] lg:hidden"
+          >
+            <div
+              data-lenis-prevent
+              className="max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain p-3"
+            >
+              {menuOrder.map((key) => {
+                const open = mobileSection === key;
+                return (
+                  <div
+                    key={key}
+                    data-mobile-item
+                    className="border-b border-ink/5"
                   >
-                    {key === "services" ? "Services" : "Study Abroad"}
-                    <span
-                      className={`grid h-8 w-8 place-items-center rounded-full transition-colors ${
-                        open ? "bg-brand text-white" : "bg-ink/5"
+                    <button
+                      type="button"
+                      aria-expanded={open}
+                      onClick={() => setMobileSection(open ? null : key)}
+                      className="flex w-full items-center justify-between px-3 py-4 text-left text-2xl font-semibold tracking-tight text-ink"
+                    >
+                      {menuLabels[key]}
+                      <span
+                        className={`grid h-8 w-8 place-items-center rounded-full transition-colors ${
+                          open ? "bg-brand text-white" : "bg-ink/5"
+                        }`}
+                      >
+                        <Chevron open={open} />
+                      </span>
+                    </button>
+                    <div
+                      className={`grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(.7,0,.2,1)] ${
+                        open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
                       }`}
                     >
-                      <Chevron open={open} />
-                    </span>
-                  </button>
-                  <div
-                    className={`grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(.7,0,.2,1)] ${
-                      open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-                    }`}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="grid gap-1 pb-3 sm:grid-cols-2">
-                        {key === "services"
-                          ? services.map((s) => (
-                              <Link
-                                key={s.label}
-                                href={s.href}
-                                onClick={() => setMobileOpen(false)}
-                                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.95rem] font-medium text-ink/80 active:bg-brand/10"
-                              >
-                                <span className="grid h-9 w-9 place-items-center rounded-lg bg-brand/10 text-brand">
-                                  <Icon name={s.icon} className="h-[18px] w-[18px]" />
-                                </span>
-                                {s.label}
-                              </Link>
-                            ))
-                          : (
-                              [
-                                ["Popular destinations", destinations.popular],
-                                ["Popular European destinations", destinations.europe],
-                              ] as const
-                            ).map(([title, list]) => (
-                              <div key={title} className="sm:col-span-2">
-                                <p className="px-3 pb-1 pt-3 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-ink/45">{title}</p>
-                                <div className="grid grid-cols-2 gap-1">
-                                  {list.map((c) => (
-                                    <Link
-                                      key={c.name}
-                                      href={c.href}
-                                      onClick={() => setMobileOpen(false)}
-                                      className="flex items-center gap-2.5 rounded-xl px-2 py-2.5 text-[0.92rem] font-medium leading-tight text-ink/80 active:bg-brand/10"
-                                    >
-                                      <Flag code={c.code} className="h-[18px] w-6" />
-                                      {c.name}
-                                    </Link>
-                                  ))}
+                      <div className="overflow-hidden">
+                        <div className="grid gap-1 pb-3 sm:grid-cols-2">
+                          {key !== "countries"
+                            ? (key === "services" ? services : resources).map(
+                                (s) => (
+                                  <Link
+                                    key={s.label}
+                                    href={s.href}
+                                    onClick={() => setMobileOpen(false)}
+                                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.95rem] font-medium text-ink/80 active:bg-brand/10"
+                                  >
+                                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-brand/10 text-brand">
+                                      <Icon
+                                        name={s.icon}
+                                        className="h-[18px] w-[18px]"
+                                      />
+                                    </span>
+                                    {s.label}
+                                  </Link>
+                                ),
+                              )
+                            : (
+                                [
+                                  [
+                                    "Popular destinations",
+                                    destinations.popular,
+                                  ],
+                                  [
+                                    "Popular European destinations",
+                                    destinations.europe,
+                                  ],
+                                ] as const
+                              ).map(([title, list]) => (
+                                <div key={title} className="sm:col-span-2">
+                                  <p className="px-3 pb-1 pt-3 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-ink/45">
+                                    {title}
+                                  </p>
+                                  <div className="grid grid-cols-2 gap-1">
+                                    {list.map((c) => (
+                                      <Link
+                                        key={c.name}
+                                        href={c.href}
+                                        onClick={() => setMobileOpen(false)}
+                                        className="flex items-center gap-2.5 rounded-xl px-2 py-2.5 text-[0.92rem] font-medium leading-tight text-ink/80 active:bg-brand/10"
+                                      >
+                                        <Flag
+                                          code={c.code}
+                                          className="h-[18px] w-6"
+                                        />
+                                        {c.name}
+                                      </Link>
+                                    ))}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-            {[{ label: "Universities & Programmes", href: "/universities" }, ...rightLinks].map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                data-mobile-item
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-between border-b border-ink/5 px-3 py-4 text-2xl font-semibold tracking-tight text-ink"
-              >
-                {item.label}
-                <Arrow className="h-5 w-5 text-brand" />
-              </Link>
-            ))}
-            <div data-mobile-item className="grid grid-cols-2 gap-2 pt-4">
-              <Link
-                href="/login"
-                onClick={() => setMobileOpen(false)}
-                className="inline-flex h-11 items-center justify-center rounded-xl border border-ink/10 text-sm font-semibold text-ink"
-              >
-                Login
-              </Link>
-              <ConsultationButton className="justify-between" />
+                );
+              })}
+              {[
+                { label: "Universities & Programmes", href: "/universities" },
+                ...rightLinks,
+              ].map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  data-mobile-item
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-between border-b border-ink/5 px-3 py-4 text-2xl font-semibold tracking-tight text-ink"
+                >
+                  {item.label}
+                  <Arrow className="h-5 w-5 text-brand" />
+                </Link>
+              ))}
+              <div data-mobile-item className="grid grid-cols-2 gap-2 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    setSignupOpen(true);
+                  }}
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-ink/10 text-sm font-semibold text-ink"
+                >
+                  Sign up
+                </button>
+                <ConsultationButton className="justify-between" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+      {signupOpen && <SignupFlow onClose={() => setSignupOpen(false)} />}
+    </>
   );
 }
