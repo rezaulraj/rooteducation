@@ -7,6 +7,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { countries, Icon } from "./Header";
+import SpinningGlobe from "./SpinningGlobe";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -464,6 +465,7 @@ export default function WhyRoot() {
 
               {c.items ? (
                 <div data-wheel className="relative h-[300px] overflow-hidden md:h-auto" aria-label={`${c.kicker} highlights`}>
+                  {c.theme === "orange" && <SpinningGlobe />}
                   <ul>
                     {c.items.map((item) => (
                       <li

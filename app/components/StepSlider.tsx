@@ -107,6 +107,7 @@ export default function StepSlider() {
   const root = useRef<HTMLDivElement>(null);
   const count = useRef<HTMLSpanElement>(null);
   const bar = useRef<HTMLSpanElement>(null);
+  const intro = useRef<HTMLDivElement>(null);
   const jumpRef = useRef<(to: number) => void>(() => {});
   const [current, setCurrent] = useState(0);
 
@@ -276,14 +277,76 @@ export default function StepSlider() {
     { scope: root },
   );
 
+  // The bridge from the hero: the heading rises in and the ribbon of step words glides on its own.
+  useGSAP(
+    () => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      gsap.fromTo(
+        "[data-i-line]",
+        { yPercent: 115 },
+        { yPercent: 0, duration: 1.2, stagger: 0.1, ease: "expo.out", scrollTrigger: { trigger: intro.current, start: "top 80%" } },
+      );
+      gsap.fromTo(
+        "[data-i-fade]",
+        { y: 24, autoAlpha: 0 },
+        { y: 0, autoAlpha: 1, duration: 1, stagger: 0.1, ease: "expo.out", scrollTrigger: { trigger: intro.current, start: "top 80%" } },
+      );
+      gsap.to("[data-i-ribbon]", { xPercent: -50, duration: 40, ease: "none", repeat: -1 });
+    },
+    { scope: intro },
+  );
+
   const jump = (to: number) => jumpRef.current(to);
 
   return (
     <section
       id="journey"
-      className="px-3"
+      className="bg-[linear-gradient(180deg,#FFFFFF_0%,#FFF5EC_40%,#FBEBDD_100%)] px-3 pb-3"
       aria-label="How we work, step by step"
     >
+      {/* Bridge from the hero into the steps */}
+      <div ref={intro} className="relative overflow-hidden pb-14 pt-20 sm:pb-16 sm:pt-28">
+        <div className="mx-auto max-w-3xl px-4 text-center">
+          <p data-i-fade className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-white/70 px-4 py-1.5 text-sm font-semibold text-[#C95A14] backdrop-blur">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand" />
+            Your journey
+          </p>
+          <h2 className="mt-5 text-[clamp(2.4rem,5.4vw,4.4rem)] font-semibold leading-[1] tracking-[-0.04em] text-[#2E1212]">
+            <span className="block overflow-hidden pb-[0.06em]">
+              <span data-i-line className="block">
+                Eight steps
+              </span>
+            </span>
+            <span className="block overflow-hidden pb-[0.1em]">
+              <span data-i-line className="block">
+                to <span className="text-brand">take-off.</span>
+              </span>
+            </span>
+          </h2>
+          <p data-i-fade className="mx-auto mt-5 max-w-md text-[1.05rem] leading-relaxed text-[#2E1212]/60">
+            Scroll through each step, from your first chat to the day you fly.
+          </p>
+        </div>
+
+        {/* A ribbon of the step words, gliding slowly */}
+        <div aria-hidden className="mt-12 overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_12%,black_88%,transparent)]">
+          <div data-i-ribbon className="flex w-max">
+            {[0, 1].map((copy) => (
+              <div key={copy} className="flex shrink-0 items-center">
+                {SLIDES.map((s) => (
+                  <span key={s.word} className="flex items-center">
+                    <span className="px-6 text-[clamp(2.4rem,5vw,4rem)] font-black uppercase leading-none tracking-[-0.03em] text-transparent [-webkit-text-stroke:1.5px_rgba(46,18,18,0.18)]">
+                      {s.word}
+                    </span>
+                    <span className="h-3 w-3 rounded-full" style={{ background: s.bg }} />
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div
         ref={root}
         tabIndex={0}

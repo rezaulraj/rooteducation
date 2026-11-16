@@ -6,11 +6,10 @@ import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { COUNTRIES, UNIVERSITIES } from "./universitiesData";
 import StepSlider from "./StepSlider";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger, MotionPathPlugin);
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const MAROON = "#2E1212";
 const NIGHT = "#140E0D";
@@ -81,10 +80,6 @@ const PARTNER_PERKS = [
   },
 ];
 
-// The hero's flight arc stays low and to the right, clear of the text.
-const HERO_ARC = "M-20 410 C 260 410, 420 350, 600 280 S 940 120, 1240 30";
-const HERO_AT = [0.12, 0.3, 0.5, 0.7, 0.88];
-
 function Icon({ d, className = "h-6 w-6" }: { d: string; className?: string }) {
   return (
     <svg
@@ -124,25 +119,10 @@ export default function HowWeWork() {
 
   useGSAP(
     () => {
-      // Sit the hero's stops and labels exactly on its arc.
-      const arc = root.current!.querySelector<SVGPathElement>("[data-h-arc]");
-      if (arc) {
-        const len = arc.getTotalLength();
-        const stops = root.current!.querySelectorAll("[data-h-stop]");
-        const labels = root.current!.querySelectorAll("[data-h-label]");
-        HERO_AT.forEach((t, i) => {
-          const pt = arc.getPointAtLength(len * t);
-          stops[i]?.setAttribute("cx", pt.x.toFixed(1));
-          stops[i]?.setAttribute("cy", pt.y.toFixed(1));
-          labels[i]?.setAttribute("x", pt.x.toFixed(1));
-          labels[i]?.setAttribute("y", (pt.y - 18).toFixed(1));
-        });
-      }
-
       const mm = gsap.matchMedia();
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        // Hero: the frame opens, the headline rises, the arc draws and a plane flies it on a loop.
+        // Hero: the frame opens and the headline rises.
         gsap
           .timeline({ defaults: { ease: "expo.out" } })
           .fromTo(
@@ -171,43 +151,7 @@ export default function HowWeWork() {
             { y: 24, autoAlpha: 0 },
             { y: 0, autoAlpha: 1, duration: 0.9, stagger: 0.08 },
             1,
-          )
-          .fromTo(
-            "[data-h-arc]",
-            { strokeDashoffset: 1 },
-            { strokeDashoffset: 0, duration: 2.2, ease: "power2.inOut" },
-            0.8,
-          )
-          .fromTo(
-            "[data-h-stop]",
-            { attr: { r: 0 } },
-            {
-              attr: { r: 5 },
-              duration: 0.5,
-              stagger: 0.18,
-              ease: "back.out(3)",
-            },
-            1.1,
-          )
-          .fromTo(
-            "[data-h-label]",
-            { autoAlpha: 0, y: 8 },
-            { autoAlpha: 1, y: 0, duration: 0.6, stagger: 0.18 },
-            1.2,
           );
-        gsap.to("[data-h-plane]", {
-          motionPath: {
-            path: "[data-h-arc]",
-            align: "[data-h-arc]",
-            alignOrigin: [0.5, 0.5],
-            autoRotate: true,
-          },
-          duration: 7,
-          ease: "power1.inOut",
-          repeat: -1,
-          repeatDelay: 0.6,
-          delay: 1.4,
-        });
         gsap.to("[data-h-star]", {
           opacity: 0.15,
           duration: () => gsap.utils.random(1.2, 3),
@@ -277,11 +221,9 @@ export default function HowWeWork() {
     { scope: root },
   );
 
-  const heroStops = ["Chat", "Plan", "Apply", "Visa", "Fly"];
-
   return (
     <div ref={root}>
-      {/* Hero: a night sky with a flight path */}
+      {/* Hero: a night sky */}
       <section className="px-3 pt-3">
         <div
           data-h-frame
@@ -311,64 +253,6 @@ export default function HowWeWork() {
             aria-hidden
             className="absolute -right-40 bottom-[-30%] h-[40rem] w-[40rem] rounded-full bg-brand/25 blur-[120px]"
           />
-
-          {/* The flight arc across the hero */}
-          <svg
-            aria-hidden
-            viewBox="0 0 1200 420"
-            preserveAspectRatio="none"
-            className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-[58%] w-full lg:block"
-          >
-            <path
-              data-h-arc
-              d={HERO_ARC}
-              fill="none"
-              stroke="#F47A2A"
-              strokeWidth="2"
-              strokeDasharray="1"
-              pathLength={1}
-              strokeLinecap="round"
-              opacity="0.9"
-            />
-            <path
-              d={HERO_ARC}
-              fill="none"
-              stroke="#fff"
-              strokeOpacity="0.12"
-              strokeWidth="1"
-              strokeDasharray="4 8"
-            />
-            {heroStops.map((label, i) => (
-              <g key={i}>
-                <circle
-                  data-h-stop
-                  cx="0"
-                  cy="0"
-                  r="5"
-                  fill={NIGHT}
-                  stroke="#F47A2A"
-                  strokeWidth="2.5"
-                />
-                <text
-                  data-h-label
-                  x="0"
-                  y="0"
-                  textAnchor="middle"
-                  fill="#fff"
-                  fillOpacity="0.7"
-                  fontSize="13"
-                  fontWeight="600"
-                  letterSpacing="1.5"
-                >
-                  {label.toUpperCase()}
-                </text>
-              </g>
-            ))}
-            <g data-h-plane>
-              <circle r="20" fill="#F47A2A" opacity="0.2" />
-              <path d="M12 0 -8 -8 -4 0 -8 8Z" fill="#fff" />
-            </g>
-          </svg>
 
           <div className="relative mx-auto max-w-6xl">
             <p

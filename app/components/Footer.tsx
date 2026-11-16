@@ -155,7 +155,11 @@ export default function Footer() {
   );
 
   return (
-    <footer ref={root} className="relative mx-3 mb-3 mt-3 overflow-hidden rounded-[28px] bg-[linear-gradient(180deg,#1A1214_0%,#141012_38%,#3A1C14_72%,#B5521F_90%,#F47A2A_100%)] text-white">
+    <footer ref={root} className="relative overflow-hidden bg-[linear-gradient(180deg,#1A1214_0%,#141012_38%,#3A1C14_72%,#B5521F_90%,#F47A2A_100%)] text-white">
+      {/* A glowing horizon along the top edge */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-px bg-[linear-gradient(90deg,transparent,#F47A2A_30%,#FFC79E_50%,#F47A2A_70%,transparent)]" />
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-40 w-[70%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/20 blur-3xl" />
+
       {/* Night sky and root system */}
       <svg aria-hidden viewBox="0 0 1440 760" preserveAspectRatio="xMidYMin slice" className="pointer-events-none absolute inset-x-0 top-0 h-[760px] w-full">
         {stars.map((s, i) => (

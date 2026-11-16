@@ -129,7 +129,7 @@ export default function StudyAbroadCards() {
 
           <Card className="min-h-[480px] bg-[linear-gradient(160deg,#2A2023_0%,#5A2A1A_100%)] text-white md:col-span-5 md:row-span-2">
             <h3 className="text-3xl font-semibold leading-[1.05] tracking-[-0.02em]">A plan you can follow</h3>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/70">You leave knowing your next step, and the ones after it.</p>
+            <p className="mt-3 max-w-xs text-sm0 leading-relaxed text-white/70">You leave knowing your next step, and the ones after it.</p>
             <div className="absolute inset-x-0 bottom-0 h-[72%]">
               <div data-sac-student className="relative h-full">
                 <Image src="/rightstudent-cutout.png" alt="Smiling graduate holding her diploma" fill sizes="(min-width: 768px) 40vw, 90vw" className="object-contain object-bottom transition-transform duration-700 group-hover:scale-105" />
