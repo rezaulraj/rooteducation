@@ -71,6 +71,11 @@ export default function BoardingPass() {
           gsap.to(el.firstElementChild, { x: 60 + i * 15, duration: 10 + i * 3, ease: "sine.inOut", yoyo: true, repeat: -1 });
         });
 
+        // The colour glows wander slowly, so the gradient feels alive.
+        gsap.utils.toArray<HTMLElement>("[data-bp-glow]").forEach((el, i) => {
+          gsap.to(el, { xPercent: i % 2 ? -18 : 18, yPercent: i === 2 ? 12 : -14, scale: 1.12, duration: 9 + i * 2.5, ease: "sine.inOut", yoyo: true, repeat: -1 });
+        });
+
         // The pass leans gently towards the cursor.
         const pass = section.querySelector<HTMLElement>("[data-bp-tilt]")!;
         const rx = gsap.quickTo(pass, "rotationX", { duration: 0.8, ease: "power3.out" });
@@ -134,12 +139,20 @@ export default function BoardingPass() {
     <section
       ref={root}
       aria-labelledby="bp-title"
-      className="relative mx-3 overflow-hidden rounded-[28px] bg-[linear-gradient(180deg,#FFF6EE_0%,#FFE3CC_45%,#FFC79E_100%)] px-4 py-20 sm:py-28"
+      className="relative overflow-hidden bg-[linear-gradient(180deg,#FFFFFF_0%,#FFF6EE_22%,#FFE6D2_52%,#FFCFAB_80%,#FFB987_100%)] px-4 pb-24 pt-24 sm:pb-32 sm:pt-32"
     >
+      {/* Soft colour glows that drift slowly behind everything */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div data-bp-glow className="absolute -bottom-48 left-[4%] h-[34rem] w-[34rem] rounded-full bg-brand/30 blur-[130px]" />
+        <div data-bp-glow className="absolute -bottom-40 right-[2%] h-[30rem] w-[30rem] rounded-full bg-[#FF8A5B]/30 blur-[120px]" />
+        <div data-bp-glow className="absolute left-1/2 top-[38%] h-[24rem] w-[44rem] -translate-x-1/2 rounded-full bg-white/70 blur-[110px]" />
+        <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-white to-transparent" />
+      </div>
+
       <div aria-hidden className="pointer-events-none absolute inset-0">
         {clouds.map((c, i) => (
           <div key={i} data-bp-cloud data-depth={c.depth} className="absolute" style={{ left: c.left, top: c.top, width: c.w }}>
-            <div className="h-16 rounded-full bg-white/75 blur-xl" />
+            <div className="h-20 rounded-full bg-white/85 blur-2xl" />
           </div>
         ))}
       </div>
