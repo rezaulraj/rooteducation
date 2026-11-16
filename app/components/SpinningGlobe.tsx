@@ -2,47 +2,66 @@
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { WORLD_DOTS } from "./worldDots";
+import { GLOBE_ROWS } from "./globeDots";
 
-// Land points as [longitude, latitude] in radians. Each map cell becomes four dots, so the
-// continents read as a fine dot-matrix. The grid is fitted to London and Dhaka on the same map.
+const RAD = Math.PI / 180;
+const STEP = 1.2; // degrees between rows in GLOBE_ROWS
+
+// Land dots as [longitude, latitude] in radians, laid out in offset rows for a fine hex pattern.
 const LAND: [number, number][] = (() => {
   const out: [number, number][] = [];
-  const rad = Math.PI / 180;
-  WORLD_DOTS.forEach((row, y) => {
-    for (let x = 0; x < row.length; x++) {
-      if (row[x] !== "#") continue;
-      for (const [dx, dy] of [
-        [0.25, 0.25],
-        [0.75, 0.25],
-        [0.25, 0.75],
-        [0.75, 0.75],
-      ]) {
-        out.push([(x + dx - 44.5) * 3.77 * rad, (83.8 - (y + dy) * 3.26) * rad]);
-      }
-    }
-  });
+  for (const [lat, n, off, runs] of GLOBE_ROWS) {
+    const dl = 360 / n;
+    let k = 0;
+    runs.forEach((count, i) => {
+      if (i % 2)
+        for (let j = 0; j < count; j++)
+          out.push([(-180 + off + (k + j) * dl) * RAD, lat * RAD]);
+      k += count;
+    });
+  }
   return out;
 })();
 
-const TILT = (18 * Math.PI) / 180;
+const TILT = 20 * RAD;
+// Light from the upper left, slightly in front (view space: x right, y up, z towards the viewer).
+const L = (() => {
+  const v = [-0.55, 0.6, 0.58];
+  const m = Math.hypot(...v);
+  return v.map((x) => x / m);
+})();
+const BANDS = 7;
 
 /**
- * A dark, dotted planet that turns slowly, with a warm halo, drawn on a canvas.
- * `cx`, `cy` place its centre as fractions of the box; `r` is its radius as a fraction of the box's shorter side.
+ * A dark planet covered in a fine hex pattern of land dots, lit from the upper left, turning slowly.
+ * Drawn on a canvas. `cx`, `cy` place its centre as fractions of the box; `r` is its radius
+ * as a fraction of the box's shorter side.
  */
-export default function SpinningGlobe({ cx = 0.56, cy = 0.52, r = 0.41, className = "" }: { cx?: number; cy?: number; r?: number; className?: string }) {
+export default function SpinningGlobe({
+  cx = 0.58,
+  cy = 0.53,
+  r = 0.46,
+  className = "",
+}: {
+  cx?: number;
+  cy?: number;
+  r?: number;
+  className?: string;
+}) {
   const canvas = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const el = canvas.current!;
     const ctx = el.getContext("2d")!;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     let w = 0;
     let h = 0;
     let dpr = 1;
-    let spin = -0.35; // start with Europe and Africa facing us
+    let spin = -0.3; // start with Europe and Africa facing us
     let visible = true;
+    const bands: number[][] = Array.from({ length: BANDS }, () => []);
 
     const resize = () => {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -61,56 +80,100 @@ export default function SpinningGlobe({ cx = 0.56, cy = 0.52, r = 0.41, classNam
       const X = w * cx;
       const Y = h * cy;
 
-      // Warm halo around the planet.
-      const halo = ctx.createRadialGradient(X, Y, R * 0.95, X, Y, R * 1.3);
-      halo.addColorStop(0, "rgba(255,236,214,0.75)");
-      halo.addColorStop(0.35, "rgba(255,206,160,0.35)");
-      halo.addColorStop(1, "rgba(255,180,120,0)");
+      // Atmosphere: a soft cream glow, brightest on the lit upper-left side.
+      const halo = ctx.createRadialGradient(
+        X - R * 0.12,
+        Y - R * 0.12,
+        R * 0.9,
+        X,
+        Y,
+        R * 1.38,
+      );
+      halo.addColorStop(0, "rgba(255,244,230,0.95)");
+      halo.addColorStop(0.3, "rgba(255,214,170,0.55)");
+      halo.addColorStop(1, "rgba(255,170,110,0)");
       ctx.fillStyle = halo;
       ctx.beginPath();
-      ctx.arc(X, Y, R * 1.3, 0, Math.PI * 2);
+      ctx.arc(X, Y, R * 1.38, 0, Math.PI * 2);
       ctx.fill();
 
-      // The planet: deep brown, lit from the upper left.
-      const body = ctx.createRadialGradient(X - R * 0.35, Y - R * 0.4, R * 0.1, X, Y, R);
-      body.addColorStop(0, "#5A2A12");
-      body.addColorStop(0.55, "#2E140A");
-      body.addColorStop(1, "#1A0B06");
+      // The planet: deep brown, lit from the upper left, darker towards the lower right.
+      const body = ctx.createRadialGradient(
+        X - R * 0.45,
+        Y - R * 0.5,
+        R * 0.05,
+        X + R * 0.1,
+        Y + R * 0.1,
+        R * 1.15,
+      );
+      body.addColorStop(0, "#5C3220");
+      body.addColorStop(0.45, "#3A1D10");
+      body.addColorStop(0.85, "#24110A");
+      body.addColorStop(1, "#1A0C07");
       ctx.fillStyle = body;
       ctx.beginPath();
       ctx.arc(X, Y, R, 0, Math.PI * 2);
       ctx.fill();
 
-      // Land dots on the near side, brighter towards the centre.
+      // Land dots, grouped into brightness bands so each band is one fill.
+      bands.forEach((b) => (b.length = 0));
       const sinT = Math.sin(TILT);
       const cosT = Math.cos(TILT);
-      const size = Math.max(0.8, R / 200);
       for (const [lon, lat] of LAND) {
         const l = lon + spin;
         const cl = Math.cos(lat);
-        const z = sinT * Math.sin(lat) + cosT * cl * Math.cos(l);
-        if (z <= 0.02) continue;
-        const px = X + R * cl * Math.sin(l);
-        const py = Y - R * (cosT * Math.sin(lat) - sinT * cl * Math.cos(l));
-        ctx.globalAlpha = 0.2 + 0.75 * z;
-        ctx.fillStyle = "#F7A86A";
-        ctx.beginPath();
-        ctx.arc(px, py, size * (0.6 + 0.55 * z), 0, Math.PI * 2);
-        ctx.fill();
+        const sl = Math.sin(lat);
+        const nz = sinT * sl + cosT * cl * Math.cos(l);
+        if (nz <= 0) continue;
+        const nx = cl * Math.sin(l);
+        const ny = cosT * sl - sinT * cl * Math.cos(l);
+        const lit = Math.max(0, nx * L[0] + ny * L[1] + nz * L[2]);
+        const band = Math.min(
+          BANDS - 1,
+          Math.floor((0.25 * nz + 0.75 * lit) * BANDS),
+        );
+        bands[band].push(X + R * nx, Y - R * ny, nz);
       }
+      const dot = R * STEP * RAD * 0.36;
+      bands.forEach((pts, i) => {
+        if (!pts.length) return;
+        const t = i / (BANDS - 1);
+        // From shadowed bronze to sunlit sand.
+        ctx.fillStyle = `rgb(${Math.round(120 + 105 * t)},${Math.round(68 + 82 * t)},${Math.round(40 + 60 * t)})`;
+        ctx.globalAlpha = 0.55 + 0.45 * t;
+        ctx.beginPath();
+        for (let k = 0; k < pts.length; k += 3) {
+          const s = dot * (0.45 + 0.55 * Math.sqrt(pts[k + 2]));
+          ctx.moveTo(pts[k] + s, pts[k + 1]);
+          ctx.arc(pts[k], pts[k + 1], s, 0, Math.PI * 2);
+        }
+        ctx.fill();
+      });
       ctx.globalAlpha = 1;
 
-      // A thin bright rim.
-      ctx.strokeStyle = "rgba(255,226,196,0.55)";
-      ctx.lineWidth = 1.5;
+      // Edge shading: the limb darkens, then a thin bright rim of atmosphere on the lit side.
+      const limb = ctx.createRadialGradient(X, Y, R * 0.7, X, Y, R);
+      limb.addColorStop(0, "rgba(20,8,4,0)");
+      limb.addColorStop(1, "rgba(20,8,4,0.55)");
+      ctx.fillStyle = limb;
       ctx.beginPath();
       ctx.arc(X, Y, R, 0, Math.PI * 2);
+      ctx.fill();
+
+      const rim = ctx.createLinearGradient(X - R, Y - R, X + R, Y + R);
+      rim.addColorStop(0, "rgba(255,236,214,0.9)");
+      rim.addColorStop(0.5, "rgba(255,190,140,0.25)");
+      rim.addColorStop(1, "rgba(255,160,100,0)");
+      ctx.strokeStyle = rim;
+      ctx.lineWidth = Math.max(1.5, R * 0.012);
+      ctx.beginPath();
+      ctx.arc(X, Y, R - ctx.lineWidth / 2, 0, Math.PI * 2);
       ctx.stroke();
     }
 
     const tick = (_t: number, delta: number) => {
       if (!visible) return;
-      spin += delta * 0.00006;
+      spin += delta * 0.00005;
       draw();
     };
 
@@ -128,5 +191,11 @@ export default function SpinningGlobe({ cx = 0.56, cy = 0.52, r = 0.41, classNam
     };
   }, [cx, cy, r]);
 
-  return <canvas ref={canvas} aria-hidden className={`pointer-events-none absolute inset-0 h-full w-full ${className}`} />;
+  return (
+    <canvas
+      ref={canvas}
+      aria-hidden
+      className={`pointer-events-none absolute inset-0 h-full w-full ${className}`}
+    />
+  );
 }
