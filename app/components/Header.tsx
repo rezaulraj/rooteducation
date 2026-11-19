@@ -203,7 +203,8 @@ const leftLinks = [
   },
 ];
 
-const rightLinks = [{ label: "Contact Us", href: "/contact" }];
+// Extra links in the mobile menu (Contact Us has its own button there).
+const rightLinks = [{ label: "About Us", href: "/about" }];
 
 const menuOrder: MenuKey[] = ["services", "countries", "resources"];
 const menuLabels: Record<MenuKey, string> = {
@@ -779,6 +780,18 @@ export default function Header() {
               className="hidden items-center justify-end gap-1 lg:flex"
               onMouseLeave={hideHighlight}
             >
+              <Link
+                href="/about"
+                data-nav-item
+                className={navLinkClass}
+                onMouseEnter={(e) => {
+                  moveHighlight(e.currentTarget);
+                  scheduleClose();
+                }}
+                onFocus={(e) => moveHighlight(e.currentTarget)}
+              >
+                About Us
+              </Link>
               <button
                 ref={(el) => {
                   triggerRefs.current.resources = el;
@@ -801,48 +814,23 @@ export default function Header() {
                 Resources
                 <Chevron open={activeMenu === "resources"} />
               </button>
-              {rightLinks.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  data-nav-item
-                  className={navLinkClass}
-                  onMouseEnter={(e) => {
-                    moveHighlight(e.currentTarget);
-                    scheduleClose();
-                  }}
-                  onFocus={(e) => moveHighlight(e.currentTarget)}
-                >
-                  {item.label}
-                </Link>
-              ))}
               <span
                 data-nav-item
                 className="mx-1.5 h-5 w-px bg-ink/10"
                 aria-hidden
               />
-              <button
-                type="button"
-                onClick={() => setSignupOpen(true)}
+              <Link
+                href="/contact"
                 data-nav-item
                 className={navLinkClass}
-                onMouseEnter={(e) => moveHighlight(e.currentTarget)}
+                onMouseEnter={(e) => {
+                  moveHighlight(e.currentTarget);
+                  scheduleClose();
+                }}
                 onFocus={(e) => moveHighlight(e.currentTarget)}
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  aria-hidden
-                >
-                  <circle cx="10" cy="8" r="4" />
-                  <path d="M2 21c1.5-4 4.5-6 8-6 2 0 3.8.6 5.2 1.8M19 14v6M16 17h6" />
-                </svg>
-                Sign up
-              </button>
+                Contact Us
+              </Link>
               <span data-nav-item className="ml-1">
                 <ConsultationButton />
               </span>
@@ -1240,16 +1228,13 @@ export default function Header() {
                 </Link>
               ))}
               <div data-mobile-item className="grid grid-cols-2 gap-2 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileOpen(false);
-                    setSignupOpen(true);
-                  }}
+                <Link
+                  href="/contact"
+                  onClick={() => setMobileOpen(false)}
                   className="inline-flex h-11 items-center justify-center rounded-xl border border-ink/10 text-sm font-semibold text-ink"
                 >
-                  Sign up
-                </button>
+                  Contact Us
+                </Link>
                 <ConsultationButton className="justify-between" />
               </div>
             </div>
