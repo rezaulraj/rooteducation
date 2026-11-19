@@ -251,7 +251,7 @@ export default function ConsultationBooking() {
               <dl data-cb-fade className="mt-8 grid grid-cols-3 gap-3 border-t border-white/10 pt-6">
                 {[
                   [String(COUNTRIES.length), "Destinations"],
-                  ["96+", "Universities"],
+                  ["80+", "Universities"],
                   ["2", "Offices"],
                 ].map(([v, l]) => (
                   <div key={l}>

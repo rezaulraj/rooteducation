@@ -595,7 +595,7 @@ export default function SignupFlow({ onClose }: { onClose: () => void }) {
                 {
                   key: "partner" as const,
                   title: "Recruitment Partner",
-                  text: "Agencies and counsellors: partner with us to place students at 96+ universities.",
+                  text: "Agencies and counsellors: partner with us to place students at 80+ universities.",
                 },
               ].map((o) => (
                 <button

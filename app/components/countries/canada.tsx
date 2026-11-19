@@ -156,7 +156,7 @@ export const guide: GuideData = {
     {
       icon: "university",
       title: "World-class universities",
-      copy: "Toronto, McGill and UBC are among the world's best, with many more strong universities and colleges.",
+      copy: "Canada has many internationally respected universities and colleges, in every province.",
     },
     {
       icon: "passport",
@@ -374,7 +374,6 @@ const cities: City[] = [
       "Canada's largest and most diverse city, a global hub for finance, tech and culture on the shores of Lake Ontario.",
     known: ["Business", "Engineering", "Medicine", "Computer science"],
     universities: [
-      "University of Toronto",
       "Toronto Metropolitan University",
       "York University",
       "Humber and Seneca colleges",
@@ -390,7 +389,6 @@ const cities: City[] = [
       "A Pacific coast city between mountains and ocean, known for its green spaces, film industry and tech scene.",
     known: ["Film", "Technology", "Forestry", "Business"],
     universities: [
-      "University of British Columbia",
       "Simon Fraser University",
       "British Columbia Institute of Technology",
     ],
@@ -404,11 +402,7 @@ const cities: City[] = [
     tagline:
       "A bilingual, creative city with a European feel, often ranked among the world's best cities for students.",
     known: ["Medicine", "Engineering", "AI", "Arts"],
-    universities: [
-      "McGill University",
-      "Concordia University",
-      "Université de Montréal",
-    ],
+    universities: ["Concordia University", "Université de Montréal"],
     vibe: "Affordable, artsy and full of festivals",
     src: u("1519178251-5390a0fb6a3f"),
     alt: "The Old Port of Montréal and the St Lawrence River at dusk",

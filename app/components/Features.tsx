@@ -25,16 +25,14 @@ const CAMPUS = [
     credit: "David Kernan, CC BY 4.0",
   },
   {
-    name: "University of Oxford",
-    src: wiki("5/5a/Bibliotheca_Bodleiana.jpg/500px-Bibliotheca_Bodleiana.jpg"),
-    credit: "Honcques Laus, CC0",
+    name: "University of Sydney",
+    src: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Usydcampuspicture.jpg/500px-Usydcampuspicture.jpg",
+    credit: "Knowledgeispower3, CC BY-SA 4.0",
   },
   {
-    name: "McGill University",
-    src: wiki(
-      "b/bf/Redpath_Museum_and_Lower_Field%2C_McGill_University%2C_July_18%2C_2024.jpg/500px-Redpath_Museum_and_Lower_Field%2C_McGill_University%2C_July_18%2C_2024.jpg",
-    ),
-    credit: "D. Benjamin Miller, CC0",
+    name: "University of Bologna",
+    src: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/%CE%A0%CE%B1%CE%BB%CE%B9%CF%8C_%CE%A6%CF%81%CE%BF%CF%8D%CF%81%CE%B9%CE%BF_%CE%B1%CF%80%CF%8C_%CF%84%CE%BF%CE%BD_%CE%9A%CE%AE%CF%80%CE%BF_%CF%84%CE%BF%CF%85_%CE%9B%CE%B1%CE%BF%CF%8D_%28%CF%80%CE%B1%CE%BD%CE%BF%CF%81%CE%B1%CE%BC%CE%B9%CE%BA%CF%8C%29.JPG/500px-%CE%A0%CE%B1%CE%BB%CE%B9%CF%8C_%CE%A6%CF%81%CE%BF%CF%8D%CF%81%CE%B9%CE%BF_%CE%B1%CF%80%CF%8C_%CF%84%CE%BF%CE%BD_%CE%9A%CE%AE%CF%80%CE%BF_%CF%84%CE%BF%CF%85_%CE%9B%CE%B1%CE%BF%CF%8D_%28%CF%80%CE%B1%CE%BD%CE%BF%CF%81%CE%B1%CE%BC%CE%B9%CE%BA%CF%8C%29.JPG",
+    credit: "Enrique Íñiguez Rodríguez (Qoan), CC BY-SA 3.0",
   },
 ];
 const PEOPLE = {
@@ -377,7 +375,7 @@ export default function Features() {
                   data-f-pill
                   className="absolute left-1/2 top-0 z-30 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#2E1212] px-3 py-1 text-[0.68rem] font-semibold text-white shadow-lg"
                 >
-                  96+ universities
+                  80+ universities
                 </span>
                 {CAMPUS.map((c, i) => (
                   <div
@@ -410,7 +408,7 @@ export default function Features() {
                       {i === 1 && (
                         <figcaption className="flex items-center gap-2 px-2 py-2">
                           <Image
-                            src="/univercity/logos/university-of-oxford.png"
+                            src="/univercity/logos/university-of-sydney.png"
                             alt=""
                             width={20}
                             height={25}
@@ -421,7 +419,7 @@ export default function Features() {
                               className="block text-[0.7rem] font-semibold"
                               style={{ color: MAROON }}
                             >
-                              University of Oxford
+                              University of Sydney
                             </span>
                             <span className="block text-[0.6rem] text-[#2E1212]/55">
                               Shortlisted for you

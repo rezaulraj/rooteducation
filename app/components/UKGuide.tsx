@@ -10,19 +10,47 @@ export const uk: GuideData = {
     why: "Globally respected degrees, shorter courses and a post-study work visa, in an English-speaking country.",
     cost: "Typical yearly tuition for international students, and the monthly living costs UK Visas and Immigration expects you to cover.",
     jobs: "A Student visa lets you work part-time during term, and the Graduate Route lets you stay and work after you finish.",
-    scholarships: "Government, Commonwealth and university scholarships help international students fund their studies.",
-    apply: "Undergraduates apply through UCAS; postgraduates usually apply directly to the university.",
-    admission: "Requirements vary by university and course. These are the usual ones for international applicants.",
-    documents: "Prepare these for your application. Documents not in English need certified translations.",
+    scholarships:
+      "Government, Commonwealth and university scholarships help international students fund their studies.",
+    apply:
+      "Undergraduates apply through UCAS; postgraduates usually apply directly to the university.",
+    admission:
+      "Requirements vary by university and course. These are the usual ones for international applicants.",
+    documents:
+      "Prepare these for your application. Documents not in English need certified translations.",
     visa: "International students on courses longer than six months need a Student visa, applied for online once you have a CAS.",
   },
   reasons: [
-    { icon: "university", title: "World-ranked universities", copy: "Oxford, Cambridge, Imperial and UCL are among the world's top 10, with many more in the top 100." },
-    { icon: "compass", title: "Shorter degrees", copy: "Most bachelor's degrees take three years (four in Scotland) and most master's just one, saving time and money." },
-    { icon: "passport", title: "Graduate Route", copy: "Stay and work after graduating: 2 years, or 18 months for applications from January 2027, and 3 years after a PhD." },
-    { icon: "document", title: "Study in English", copy: "Learn and live in English, the language of global business, science and research." },
-    { icon: "scholarship", title: "Scholarships", copy: "Chevening, Commonwealth and GREAT scholarships, plus thousands of university awards." },
-    { icon: "plane", title: "Diverse student life", copy: "Hundreds of thousands of international students, in cities linked by fast trains and short flights to Europe." },
+    {
+      icon: "university",
+      title: "World-ranked universities",
+      copy: "Many UK universities rank among the world's top 100.",
+    },
+    {
+      icon: "compass",
+      title: "Shorter degrees",
+      copy: "Most bachelor's degrees take three years (four in Scotland) and most master's just one, saving time and money.",
+    },
+    {
+      icon: "passport",
+      title: "Graduate Route",
+      copy: "Stay and work after graduating: 2 years, or 18 months for applications from January 2027, and 3 years after a PhD.",
+    },
+    {
+      icon: "document",
+      title: "Study in English",
+      copy: "Learn and live in English, the language of global business, science and research.",
+    },
+    {
+      icon: "scholarship",
+      title: "Scholarships",
+      copy: "Chevening, Commonwealth and GREAT scholarships, plus thousands of university awards.",
+    },
+    {
+      icon: "plane",
+      title: "Diverse student life",
+      copy: "Hundreds of thousands of international students, in cities linked by fast trains and short flights to Europe.",
+    },
   ],
   tuition: [
     { field: "Arts, business & humanities", from: 15000, to: 26000 },
@@ -34,11 +62,36 @@ export const uk: GuideData = {
     from: 1171,
     to: 1529,
     items: [
-      { item: "Accommodation", range: "£600–1,000", share: 55, note: "Halls or a shared house; London costs most" },
-      { item: "Food", range: "£200–300", share: 19, note: "Groceries and eating out" },
-      { item: "Transport", range: "£50–120", share: 6, note: "Student travel cards and railcards" },
-      { item: "Phone & bills", range: "£60–120", share: 7, note: "Often included in halls" },
-      { item: "Other", range: "£100–200", share: 13, note: "Books, clothes, leisure" },
+      {
+        item: "Accommodation",
+        range: "£600–1,000",
+        share: 55,
+        note: "Halls or a shared house; London costs most",
+      },
+      {
+        item: "Food",
+        range: "£200–300",
+        share: 19,
+        note: "Groceries and eating out",
+      },
+      {
+        item: "Transport",
+        range: "£50–120",
+        share: 6,
+        note: "Student travel cards and railcards",
+      },
+      {
+        item: "Phone & bills",
+        range: "£60–120",
+        share: 7,
+        note: "Often included in halls",
+      },
+      {
+        item: "Other",
+        range: "£100–200",
+        share: 13,
+        note: "Books, clothes, leisure",
+      },
     ],
   },
   work: {
@@ -46,40 +99,83 @@ export const uk: GuideData = {
     unit: "hrs/week",
     copy: "Students on a degree-level course can work up to 20 hours a week during term, and full-time in the official vacations. After graduating, the Graduate Route lets you stay and work without a job offer.",
     points: [
-      ["Popular student jobs", "Retail, hospitality, campus jobs, tutoring and student ambassador roles."],
-      ["Growing sectors", "Finance, technology, healthcare, engineering, data and the creative industries."],
-      ["Graduate Route", "2 years after a bachelor's or master's (18 months for applications from 1 January 2027); 3 years after a PhD."],
-      ["Longer term", "With a qualifying job offer, you can switch to a Skilled Worker visa."],
+      [
+        "Popular student jobs",
+        "Retail, hospitality, campus jobs, tutoring and student ambassador roles.",
+      ],
+      [
+        "Growing sectors",
+        "Finance, technology, healthcare, engineering, data and the creative industries.",
+      ],
+      [
+        "Graduate Route",
+        "2 years after a bachelor's or master's (18 months for applications from 1 January 2027); 3 years after a PhD.",
+      ],
+      [
+        "Longer term",
+        "With a qualifying job offer, you can switch to a Skilled Worker visa.",
+      ],
     ],
   },
   scholarships: [
     {
       title: "Chevening Scholarships",
       who: "Future leaders · one-year master's",
-      covers: ["Full tuition fees", "Monthly living allowance", "Return flights and visa costs"],
+      covers: [
+        "Full tuition fees",
+        "Monthly living allowance",
+        "Return flights and visa costs",
+      ],
       when: "Applications usually open in August and close in early November",
     },
     {
       title: "Commonwealth Scholarships",
       who: "Commonwealth countries · Master's and PhD",
-      covers: ["Tuition fees and living allowance", "Travel to and from the UK"],
+      covers: [
+        "Tuition fees and living allowance",
+        "Travel to and from the UK",
+      ],
       when: "Applications usually open in the autumn",
     },
     {
       title: "GREAT and university scholarships",
       who: "International students",
-      covers: ["GREAT: at least £10,000 towards a one-year master's", "University awards from about £2,000 to full fees"],
+      covers: [
+        "GREAT: at least £10,000 towards a one-year master's",
+        "University awards from about £2,000 to full fees",
+      ],
       when: "Usually with or soon after your university application",
     },
   ],
   applySteps: [
-    { title: "Choose a course", copy: "Pick universities and courses that fit your goals, grades and budget." },
-    { title: "Apply through UCAS or directly", copy: "Undergraduates apply through UCAS (up to five choices); postgraduates apply directly to each university." },
-    { title: "Meet the deadline", copy: "For 2027 entry, UCAS's main deadline is 13 January 2027; Oxford, Cambridge and most medicine closed on 15 October 2026." },
-    { title: "Receive your offer", copy: "Offers are conditional (you still need to meet grades) or unconditional. Accept your firm choice." },
-    { title: "Pay the deposit and get your CAS", copy: "Your university issues a Confirmation of Acceptance for Studies (CAS), which you need for the visa." },
-    { title: "Apply for the Student visa", copy: "Apply online, pay the visa fee and health surcharge, give biometrics, and take a TB test if your country requires one." },
-    { title: "Arrive and enrol", copy: "Travel, enrol at your university and access your eVisa through your UKVI account." },
+    {
+      title: "Choose a course",
+      copy: "Pick universities and courses that fit your goals, grades and budget.",
+    },
+    {
+      title: "Apply through UCAS or directly",
+      copy: "Undergraduates apply through UCAS (up to five choices); postgraduates apply directly to each university.",
+    },
+    {
+      title: "Meet the deadline",
+      copy: "For 2027 entry, UCAS's main deadline is 13 January 2027; some highly competitive courses, including most medicine, closed on 15 October 2026.",
+    },
+    {
+      title: "Receive your offer",
+      copy: "Offers are conditional (you still need to meet grades) or unconditional. Accept your firm choice.",
+    },
+    {
+      title: "Pay the deposit and get your CAS",
+      copy: "Your university issues a Confirmation of Acceptance for Studies (CAS), which you need for the visa.",
+    },
+    {
+      title: "Apply for the Student visa",
+      copy: "Apply online, pay the visa fee and health surcharge, give biometrics, and take a TB test if your country requires one.",
+    },
+    {
+      title: "Arrive and enrol",
+      copy: "Travel, enrol at your university and access your eVisa through your UKVI account.",
+    },
   ],
   admission: {
     Bachelor: [
@@ -87,7 +183,7 @@ export const uk: GuideData = {
       "A foundation year, for some 12-year school systems",
       "English proficiency: usually IELTS for UKVI 6.0–6.5",
       "Personal statement and an academic reference",
-      "Admissions tests or interviews for some courses (e.g. medicine, Oxford and Cambridge)",
+      "Admissions tests or interviews for some courses (e.g. medicine)",
     ],
     Master: [
       "Bachelor's degree equivalent to a UK 2:1 or 2:2, depending on the university",
@@ -114,8 +210,16 @@ export const uk: GuideData = {
   visa: {
     stats: [
       ["Visa fee", "£558", "Student visa, applying from outside the UK"],
-      ["Health surcharge", "£776/yr", "Immigration Health Surcharge, paid upfront"],
-      ["Funds to show", "£1,171–1,529", "Per month for up to 9 months, outside / in London"],
+      [
+        "Health surcharge",
+        "£776/yr",
+        "Immigration Health Surcharge, paid upfront",
+      ],
+      [
+        "Funds to show",
+        "£1,171–1,529",
+        "Per month for up to 9 months, outside / in London",
+      ],
     ],
     steps: [
       "Accept your offer, pay the deposit and receive your CAS.",

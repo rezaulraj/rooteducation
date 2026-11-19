@@ -372,14 +372,9 @@ const cities: City[] = [
     name: "Boston",
     region: "Massachusetts · New England",
     tagline:
-      "America's college town, home to some of the world's most famous universities and a booming biotech scene.",
+      "America's college town, home to dozens of universities and a booming biotech scene.",
     known: ["Medicine", "Engineering", "Biotech", "Law"],
-    universities: [
-      "Harvard University",
-      "Massachusetts Institute of Technology (MIT)",
-      "Boston University",
-      "Northeastern University",
-    ],
+    universities: ["Boston University", "Northeastern University"],
     vibe: "Historic, academic and walkable",
     src: u("1565127803082-69dd82351360"),
     alt: "The Boston skyline across the Charles River on a sunny day",
@@ -391,7 +386,6 @@ const cities: City[] = [
       "The heart of the tech world, from Silicon Valley start-ups to the Golden Gate Bridge.",
     known: ["Computer science", "Engineering", "Business", "Design"],
     universities: [
-      "Stanford University",
       "University of California, Berkeley",
       "San José State University",
     ],
@@ -406,7 +400,6 @@ const cities: City[] = [
       "A great lakeside city of architecture, business and food, with strong universities and lower costs than the coasts.",
     known: ["Economics", "Business", "Engineering", "Architecture"],
     universities: [
-      "University of Chicago",
       "Northwestern University",
       "University of Illinois Chicago",
       "DePaul University",
