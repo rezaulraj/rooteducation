@@ -59,6 +59,7 @@ async function post(body: object) {
       ok: boolean;
       error?: string;
       devCode?: string;
+      token?: string;
       retryIn?: number;
     };
   } catch {
@@ -83,6 +84,8 @@ export default function SignupFlow({ onClose }: { onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [devCode, setDevCode] = useState("");
+  // Signed proof from the server that a code was sent; sent back when verifying.
+  const [token, setToken] = useState("");
   const [resendAt, setResendAt] = useState(0);
   const [now, setNow] = useState(0);
 
@@ -218,6 +221,7 @@ export default function SignupFlow({ onClose }: { onClose: () => void }) {
       return false;
     }
     setDevCode(r.devCode ?? "");
+    setToken(r.token ?? "");
     setResendAt(Date.now() + RESEND * 1000);
     setNow(Date.now());
     return true;
@@ -235,7 +239,7 @@ export default function SignupFlow({ onClose }: { onClose: () => void }) {
   const verify = async (code: string) => {
     setBusy(true);
     setError("");
-    const r = await post({ action: "verify", phone: full, code });
+    const r = await post({ action: "verify", phone: full, code, token });
     setBusy(false);
     if (r.ok) {
       // A small celebration before moving on.
@@ -537,13 +541,31 @@ export default function SignupFlow({ onClose }: { onClose: () => void }) {
               )}
             </div>
             {devCode && (
-              <p
+              // Demo mode: no SMS service is connected yet, so the code is shown here instead.
+              <div
                 data-m-in
-                className="mx-auto mt-3 w-fit rounded-full bg-[#FFF4E5] px-3 py-1 text-xs text-[#9A5B00]"
+                className="mx-auto mt-4 flex w-full items-center gap-3 rounded-2xl border border-dashed border-[#F5B25C] bg-[#FFF6E8] px-4 py-3 text-left"
               >
-                Test mode, no SMS sent. Your code is{" "}
-                <b className="tracking-widest">{devCode}</b>
-              </p>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-[#B26B00]">
+                    Demo mode · no SMS sent
+                  </span>
+                  <span className="mt-0.5 block text-sm text-[#7A4A00]">
+                    Your code is{" "}
+                    <b className="font-mono text-lg tracking-[0.25em] text-[#2E1212]">
+                      {devCode}
+                    </b>
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => fill(0, devCode)}
+                  className="shrink-0 rounded-full bg-[#2E1212] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand disabled:opacity-50"
+                >
+                  Use code
+                </button>
+              </div>
             )}
             <div data-m-in className="mt-7">
               <Consent />
