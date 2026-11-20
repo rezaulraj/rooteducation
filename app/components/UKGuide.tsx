@@ -8,6 +8,8 @@ export const uk: GuideData = {
   currency: "£",
   intros: {
     why: "Globally respected degrees, shorter courses and a post-study work visa, in an English-speaking country.",
+    intakes:
+      "Most UK courses start in September, with a smaller January intake and a few courses in May.",
     cost: "Typical yearly tuition for international students, and the monthly living costs UK Visas and Immigration expects you to cover.",
     jobs: "A Student visa lets you work part-time during term, and the Graduate Route lets you stay and work after you finish.",
     scholarships:
@@ -20,6 +22,31 @@ export const uk: GuideData = {
       "Prepare these for your application. Documents not in English need certified translations.",
     visa: "International students on courses longer than six months need a Student visa, applied for online once you have a CAS.",
   },
+  intakes: [
+    {
+      title: "September intake",
+      when: "September",
+      months: [9],
+      main: true,
+      copy: "The main intake, when almost every undergraduate and postgraduate course starts, with the widest choice of courses and scholarships.",
+      apply:
+        "UCAS undergraduate deadline mid-January; postgraduate usually by March to June",
+    },
+    {
+      title: "January intake",
+      when: "January",
+      months: [1],
+      copy: "A second start date offered by many universities, mostly for postgraduate taught courses and some foundation programmes.",
+      apply: "Usually by October to early December of the year before",
+    },
+    {
+      title: "May intake",
+      when: "April – May",
+      months: [4, 5],
+      copy: "A smaller intake at selected universities, for a limited range of postgraduate and pathway courses.",
+      apply: "Usually by January to March",
+    },
+  ],
   reasons: [
     {
       icon: "university",

@@ -8,6 +8,8 @@ export const australia: GuideData = {
   currency: "A$",
   intros: {
     why: "World-ranked universities, generous work rights and a post-study work visa, in a safe, sunny and multicultural country.",
+    intakes:
+      "Australian universities have two main intakes, Semester 1 in February and Semester 2 in July, with a smaller one in November at some.",
     cost: "Typical yearly tuition for international students, and what a month of student life costs in Australia.",
     jobs: "A Student visa lets you work part-time during study periods and without a limit in scheduled breaks.",
     scholarships:
@@ -20,6 +22,30 @@ export const australia: GuideData = {
       "Prepare these for your application. Documents not in English need certified translations.",
     visa: "International students need a Student visa (subclass 500), applied for online once you have a Confirmation of Enrolment.",
   },
+  intakes: [
+    {
+      title: "Semester 1",
+      when: "Feb – Mar",
+      months: [2, 3],
+      main: true,
+      copy: "The start of the academic year and the biggest intake, with every course on offer and the most scholarships.",
+      apply: "Usually October – November of the year before",
+    },
+    {
+      title: "Semester 2",
+      when: "July",
+      months: [7],
+      copy: "The mid-year intake. Most courses also start in July, with fewer applicants than February.",
+      apply: "Usually April – May",
+    },
+    {
+      title: "Trimester 3 / Summer",
+      when: "November",
+      months: [11],
+      copy: "Some universities run a third trimester or summer term from November, for selected courses.",
+      apply: "Usually August – September",
+    },
+  ],
   reasons: [
     {
       icon: "university",
